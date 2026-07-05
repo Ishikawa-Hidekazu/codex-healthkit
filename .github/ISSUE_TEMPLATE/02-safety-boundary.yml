@@ -1,0 +1,48 @@
+name: Safety-boundary concern
+description: Report a concern about what the tool reads, reports, or executes.
+title: "[Safety]: "
+labels: ["safety"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for non-sensitive safety-boundary concerns.
+
+        If the issue includes a vulnerability or private details, do not post it publicly. Follow `SECURITY.md` instead.
+  - type: textarea
+    id: concern
+    attributes:
+      label: Concern
+      description: What boundary might be unclear or unsafe?
+      placeholder: Describe the behavior or documentation concern.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Default local metadata checks
+        - Report output
+        - Optional Codex version
+        - Optional Codex doctor
+        - Documentation
+        - Packaging or release
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: suggested-change
+    attributes:
+      label: Suggested change
+      placeholder: What would make this safer or clearer?
+    validations:
+      required: false
+  - type: checkboxes
+    id: public-safe
+    attributes:
+      label: Public safety
+      options:
+        - label: This report does not include secrets, tokens, private logs, raw transcripts, or raw doctor output.
+          required: true
+

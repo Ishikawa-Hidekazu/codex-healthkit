@@ -1,0 +1,455 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VERSION="0.1.0-dev"
+FORMAT="markdown"
+WITH_CODEX_VERSION=0
+WITH_CODEX_DOCTOR=0
+COMMAND="check"
+
+usage() {
+  cat <<'USAGE'
+codex-healthkit - local metadata health checks for daily Codex operators
+
+Usage:
+  codex-healthkit check [--markdown|--json] [--with-codex-version] [--with-codex-doctor]
+  codex-healthkit --version
+  codex-healthkit --help
+
+Default behavior:
+  Performs local file metadata checks only. It does not read auth files,
+  SQLite contents, session transcript contents, token files, or cookies, and
+  it does not execute the external codex command.
+
+Optional:
+  --with-codex-version runs `codex --version`.
+  --with-codex-doctor runs official `codex doctor --json` and extracts only
+  redacted status counts. Codex CLI may perform provider
+  reachability checks when this option is enabled.
+USAGE
+}
+
+die() {
+  printf 'codex-healthkit: %s\n' "$*" >&2
+  exit 2
+}
+
+safe_text() {
+  LC_ALL=C tr '\001-\037\177' ' '
+}
+
+json_string() {
+  local text
+  text="$(printf '%s' "$1" | safe_text)"
+  text="${text//\\/\\\\}"
+  text="${text//\"/\\\"}"
+  printf '"%s"' "$text"
+}
+
+markdown_inline() {
+  local text
+  text="$(printf '%s' "$1" | safe_text)"
+  text="${text//\\/\\\\}"
+  text="${text//|/\\|}"
+  text="${text//\`/\\\`}"
+  printf '%s' "$text"
+}
+
+bool_json() {
+  if [ "$1" = "1" ]; then
+    printf 'true'
+  else
+    printf 'false'
+  fi
+}
+
+bytes_for() {
+  local path="$1"
+  if [ ! -e "$path" ] || [ -L "$path" ]; then
+    printf '0'
+    return
+  fi
+
+  if stat -f '%z' "$path" >/dev/null 2>&1; then
+    stat -f '%z' "$path" 2>/dev/null || printf '0'
+    return
+  fi
+
+  if stat -c '%s' "$path" >/dev/null 2>&1; then
+    stat -c '%s' "$path" 2>/dev/null || printf '0'
+    return
+  fi
+
+  printf '0'
+}
+
+tree_bytes_for() {
+  local path="$1"
+  if [ ! -e "$path" ] || [ -L "$path" ]; then
+    printf '0'
+    return
+  fi
+
+  if [ -d "$path" ]; then
+    du -sk "$path" 2>/dev/null | awk '{printf "%d", $1 * 1024}' || printf '0'
+    return
+  fi
+
+  bytes_for "$path"
+}
+
+human_size_for() {
+  local path="$1"
+  if [ ! -e "$path" ] || [ -L "$path" ]; then
+    printf '0B'
+    return
+  fi
+
+  du -sh "$path" 2>/dev/null | awk '{print $1}' || printf '0B'
+}
+
+count_jsonl_files() {
+  local path="$1"
+  if [ ! -d "$path" ] || [ -L "$path" ]; then
+    printf '0'
+    return
+  fi
+
+  { find "$path" -type f -name '*.jsonl' -print 2>/dev/null || true; } | wc -l | tr -d '[:space:]'
+}
+
+path_exists_bool() {
+  local path="$1"
+  if [ -e "$path" ] && [ ! -L "$path" ]; then
+    printf '1'
+  else
+    printf '0'
+  fi
+}
+
+resolve_sqlite_home() {
+  local raw="${CODEX_SQLITE_HOME:-${CODEX_HOME:-$HOME/.codex}}"
+  case "$raw" in
+    /*) printf '%s' "$raw" ;;
+    *) printf '%s/%s' "$PWD" "$raw" ;;
+  esac
+}
+
+health_note() {
+  local db_bytes="$1"
+  local wal_bytes="$2"
+  local gib=$((1024 * 1024 * 1024))
+  local mib=$((1024 * 1024))
+
+  if [ "$db_bytes" -ge $((2 * gib)) ] || [ "$wal_bytes" -ge $((500 * mib)) ]; then
+    printf 'watch: log DB or WAL is large; compare with a previous check.'
+  elif [ "$wal_bytes" -ge $((100 * mib)) ]; then
+    printf 'watch: WAL is above 100MB; check again after normal use.'
+  else
+    printf 'ok: no large WAL spike detected by size-only check.'
+  fi
+}
+
+overall_status_for() {
+  local db_bytes="$1"
+  local wal_bytes="$2"
+  local gib=$((1024 * 1024 * 1024))
+  local mib=$((1024 * 1024))
+
+  if [ "$db_bytes" -ge $((2 * gib)) ] || [ "$wal_bytes" -ge $((100 * mib)) ]; then
+    printf 'watch'
+  else
+    printf 'ok'
+  fi
+}
+
+run_codex_doctor() {
+  local doctor_json doctor_exit doctor_summary
+  doctor_exit=0
+
+  if [ "$WITH_CODEX_DOCTOR" -ne 1 ]; then
+    DOCTOR_REQUESTED=0
+    DOCTOR_RAN=0
+    DOCTOR_STATUS="skipped"
+    DOCTOR_NOTE="not requested; pass --with-codex-doctor to run official Codex doctor"
+    DOCTOR_OK=0
+    DOCTOR_WARN=0
+    DOCTOR_FAIL=0
+    return
+  fi
+
+  DOCTOR_REQUESTED=1
+
+  if ! command -v codex >/dev/null 2>&1; then
+    DOCTOR_RAN=0
+    DOCTOR_STATUS="unavailable"
+    DOCTOR_NOTE="codex command not found"
+    DOCTOR_OK=0
+    DOCTOR_WARN=0
+    DOCTOR_FAIL=0
+    return
+  fi
+
+  if ! command -v jq >/dev/null 2>&1; then
+    DOCTOR_RAN=0
+    DOCTOR_STATUS="skipped"
+    DOCTOR_NOTE="jq is required to extract redacted codex doctor JSON safely"
+    DOCTOR_OK=0
+    DOCTOR_WARN=0
+    DOCTOR_FAIL=0
+    return
+  fi
+
+  doctor_json="$(codex doctor --json 2>/dev/null)" || doctor_exit=$?
+  if [ "$doctor_exit" -ne 0 ] && [ -z "$doctor_json" ]; then
+    DOCTOR_RAN=0
+    DOCTOR_STATUS="error"
+    DOCTOR_NOTE="codex doctor --json exited with code $doctor_exit"
+    DOCTOR_OK=0
+    DOCTOR_WARN=0
+    DOCTOR_FAIL=0
+    return
+  fi
+
+  doctor_summary="$(
+    printf '%s' "$doctor_json" |
+      jq -r '[
+        (.overallStatus // "unknown"),
+        ([.checks[]? | select(.status == "ok")] | length),
+        ([.checks[]? | select(.status == "warn" or .status == "warning" or .status == "degraded")] | length),
+        ([.checks[]? | select(.status == "fail" or .status == "error")] | length)
+      ] | @tsv' 2>/dev/null
+  )" || {
+    DOCTOR_RAN=0
+    DOCTOR_STATUS="error"
+    DOCTOR_NOTE="codex doctor --json did not return parseable JSON"
+    DOCTOR_OK=0
+    DOCTOR_WARN=0
+    DOCTOR_FAIL=0
+    return
+  }
+
+  DOCTOR_RAN=1
+  IFS="$(printf '\t')" read -r DOCTOR_STATUS DOCTOR_OK DOCTOR_WARN DOCTOR_FAIL <<EOF
+$doctor_summary
+EOF
+  DOCTOR_NOTE="redacted official Codex doctor JSON summarized; raw output not included"
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    check)
+      COMMAND="check"
+      ;;
+    --markdown)
+      FORMAT="markdown"
+      ;;
+    --json)
+      FORMAT="json"
+      ;;
+    --with-codex-version)
+      WITH_CODEX_VERSION=1
+      ;;
+    --with-codex-doctor)
+      WITH_CODEX_DOCTOR=1
+      ;;
+    --version)
+      printf 'codex-healthkit %s\n' "$VERSION"
+      exit 0
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      die "unknown argument: $1"
+      ;;
+  esac
+  shift
+done
+
+[ "$COMMAND" = "check" ] || die "unsupported command: $COMMAND"
+
+GENERATED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
+SQLITE_HOME_DIR="$(resolve_sqlite_home)"
+
+SESSIONS_DIR="$CODEX_HOME_DIR/sessions"
+ARCHIVED_DIR="$CODEX_HOME_DIR/archived_sessions"
+QUARANTINE_DIR="$CODEX_HOME_DIR/quarantine"
+LOG_DB="$SQLITE_HOME_DIR/logs_2.sqlite"
+LOG_SHM="$SQLITE_HOME_DIR/logs_2.sqlite-shm"
+LOG_WAL="$SQLITE_HOME_DIR/logs_2.sqlite-wal"
+
+CODEX_FOUND=0
+CODEX_VERSION="not requested"
+if command -v codex >/dev/null 2>&1; then
+  CODEX_FOUND=1
+  if [ "$WITH_CODEX_VERSION" -eq 1 ]; then
+    CODEX_VERSION="$(codex --version 2>/dev/null || printf 'unknown')"
+  fi
+fi
+
+SESSIONS_EXISTS="$(path_exists_bool "$SESSIONS_DIR")"
+ARCHIVED_EXISTS="$(path_exists_bool "$ARCHIVED_DIR")"
+QUARANTINE_EXISTS="$(path_exists_bool "$QUARANTINE_DIR")"
+LOG_DB_EXISTS="$(path_exists_bool "$LOG_DB")"
+LOG_SHM_EXISTS="$(path_exists_bool "$LOG_SHM")"
+LOG_WAL_EXISTS="$(path_exists_bool "$LOG_WAL")"
+
+SESSIONS_SIZE="$(human_size_for "$SESSIONS_DIR")"
+ARCHIVED_SIZE="$(human_size_for "$ARCHIVED_DIR")"
+QUARANTINE_SIZE="$(human_size_for "$QUARANTINE_DIR")"
+LOG_DB_SIZE="$(human_size_for "$LOG_DB")"
+LOG_SHM_SIZE="$(human_size_for "$LOG_SHM")"
+LOG_WAL_SIZE="$(human_size_for "$LOG_WAL")"
+
+SESSIONS_BYTES="$(tree_bytes_for "$SESSIONS_DIR")"
+ARCHIVED_BYTES="$(tree_bytes_for "$ARCHIVED_DIR")"
+QUARANTINE_BYTES="$(tree_bytes_for "$QUARANTINE_DIR")"
+LOG_DB_BYTES="$(bytes_for "$LOG_DB")"
+LOG_SHM_BYTES="$(bytes_for "$LOG_SHM")"
+LOG_WAL_BYTES="$(bytes_for "$LOG_WAL")"
+
+SESSIONS_COUNT="$(count_jsonl_files "$SESSIONS_DIR")"
+ARCHIVED_COUNT="$(count_jsonl_files "$ARCHIVED_DIR")"
+
+OVERALL_STATUS="$(overall_status_for "$LOG_DB_BYTES" "$LOG_WAL_BYTES")"
+SQLITE_NOTE="$(health_note "$LOG_DB_BYTES" "$LOG_WAL_BYTES")"
+
+DOCTOR_REQUESTED=0
+DOCTOR_RAN=0
+DOCTOR_STATUS="skipped"
+DOCTOR_NOTE=""
+DOCTOR_OK=0
+DOCTOR_WARN=0
+DOCTOR_FAIL=0
+run_codex_doctor
+
+if [ "$DOCTOR_RAN" = "1" ]; then
+  if [ "$DOCTOR_FAIL" -gt 0 ]; then
+    OVERALL_STATUS="fail"
+  elif [ "$DOCTOR_WARN" -gt 0 ] && [ "$OVERALL_STATUS" = "ok" ]; then
+    OVERALL_STATUS="watch"
+  fi
+fi
+
+if [ "$FORMAT" = "json" ]; then
+  cat <<JSON
+{
+  "tool": "codex-healthkit",
+  "version": $(json_string "$VERSION"),
+  "generated_at": $(json_string "$GENERATED_AT"),
+  "summary": {
+    "status": $(json_string "$OVERALL_STATUS"),
+    "sqlite_note": $(json_string "$SQLITE_NOTE")
+  },
+  "codex_cli": {
+    "found": $(bool_json "$CODEX_FOUND"),
+    "version": $(json_string "$CODEX_VERSION")
+  },
+  "state": {
+    "sessions": {
+      "exists": $(bool_json "$SESSIONS_EXISTS"),
+      "bytes": $SESSIONS_BYTES,
+      "size": $(json_string "$SESSIONS_SIZE"),
+      "jsonl_count": $SESSIONS_COUNT
+    },
+    "archived_sessions": {
+      "exists": $(bool_json "$ARCHIVED_EXISTS"),
+      "bytes": $ARCHIVED_BYTES,
+      "size": $(json_string "$ARCHIVED_SIZE"),
+      "jsonl_count": $ARCHIVED_COUNT
+    },
+    "quarantine": {
+      "exists": $(bool_json "$QUARANTINE_EXISTS"),
+      "bytes": $QUARANTINE_BYTES,
+      "size": $(json_string "$QUARANTINE_SIZE")
+    },
+    "logs_2_sqlite": {
+      "exists": $(bool_json "$LOG_DB_EXISTS"),
+      "bytes": $LOG_DB_BYTES,
+      "size": $(json_string "$LOG_DB_SIZE")
+    },
+    "logs_2_sqlite_shm": {
+      "exists": $(bool_json "$LOG_SHM_EXISTS"),
+      "bytes": $LOG_SHM_BYTES,
+      "size": $(json_string "$LOG_SHM_SIZE")
+    },
+    "logs_2_sqlite_wal": {
+      "exists": $(bool_json "$LOG_WAL_EXISTS"),
+      "bytes": $LOG_WAL_BYTES,
+      "size": $(json_string "$LOG_WAL_SIZE")
+    }
+  },
+  "official_codex_doctor": {
+    "requested": $(bool_json "$DOCTOR_REQUESTED"),
+    "ran": $(bool_json "$DOCTOR_RAN"),
+    "status": $(json_string "$DOCTOR_STATUS"),
+    "ok": $DOCTOR_OK,
+    "warn": $DOCTOR_WARN,
+    "fail": $DOCTOR_FAIL,
+    "note": $(json_string "$DOCTOR_NOTE")
+  },
+  "safety": {
+    "auth_files_read": false,
+    "token_files_read": false,
+    "cookies_read": false,
+    "sqlite_contents_read": false,
+    "session_transcript_contents_read": false,
+    "healthkit_network_telemetry": false
+  }
+}
+JSON
+  exit 0
+fi
+
+cat <<MARKDOWN
+# codex-healthkit report
+
+Generated: $GENERATED_AT
+
+## Summary
+
+- status: \`$OVERALL_STATUS\`
+- sqlite_note: $SQLITE_NOTE
+- default_mode: local file metadata only
+
+## Codex CLI
+
+- found: \`$(if [ "$CODEX_FOUND" = "1" ]; then printf 'yes'; else printf 'no'; fi)\`
+- version: \`$(markdown_inline "$CODEX_VERSION")\`
+- version_requested: \`$(if [ "$WITH_CODEX_VERSION" = "1" ]; then printf 'yes'; else printf 'no'; fi)\`
+
+## Local State Metadata
+
+| item | exists | bytes | size | count | note |
+|---|---:|---:|---:|---:|---|
+| active sessions | $(if [ "$SESSIONS_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $SESSIONS_BYTES | $SESSIONS_SIZE | $SESSIONS_COUNT | file count only; transcript contents not read |
+| archived sessions | $(if [ "$ARCHIVED_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $ARCHIVED_BYTES | $ARCHIVED_SIZE | $ARCHIVED_COUNT | review before deleting |
+| quarantine | $(if [ "$QUARANTINE_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $QUARANTINE_BYTES | $QUARANTINE_SIZE | - | metadata only |
+| logs_2.sqlite | $(if [ "$LOG_DB_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $LOG_DB_BYTES | $LOG_DB_SIZE | - | size only; SQLite contents not read |
+| logs_2.sqlite-shm | $(if [ "$LOG_SHM_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $LOG_SHM_BYTES | $LOG_SHM_SIZE | - | size only |
+| logs_2.sqlite-wal | $(if [ "$LOG_WAL_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $LOG_WAL_BYTES | $LOG_WAL_SIZE | - | size only |
+
+## Official Codex Doctor
+
+- requested: \`$(if [ "$DOCTOR_REQUESTED" = "1" ]; then printf 'yes'; else printf 'no'; fi)\`
+- ran: \`$(if [ "$DOCTOR_RAN" = "1" ]; then printf 'yes'; else printf 'no'; fi)\`
+- status: \`$DOCTOR_STATUS\`
+- checks: \`ok=$DOCTOR_OK warn=$DOCTOR_WARN fail=$DOCTOR_FAIL\`
+- note: $(markdown_inline "$DOCTOR_NOTE")
+
+When \`--with-codex-doctor\` is enabled, Codex CLI may perform provider reachability checks using your existing Codex configuration.
+
+## Safety
+
+- auth files read: \`no\`
+- token files read: \`no\`
+- cookies read: \`no\`
+- SQLite contents read: \`no\`
+- session transcript contents read: \`no\`
+- healthkit telemetry/upload: \`no\`
+
+Not affiliated with OpenAI.
+MARKDOWN

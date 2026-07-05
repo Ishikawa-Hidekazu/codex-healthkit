@@ -1,0 +1,12 @@
+.DS_Store
+*.log
+*.tmp
+*.tgz
+npm-debug.log*
+/node_modules/
+/dist/
+/coverage/
+/reports/
+/tmp/
+/tests/fixtures/codex-home/tmp/
+codex-health-report.*

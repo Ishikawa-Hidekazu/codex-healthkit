@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security policy
+    url: https://github.com/Ishikawa-Hidekazu/codex-healthkit/security/policy
+    about: Please report sensitive security issues privately.
+  - name: Support guide
+    url: https://github.com/Ishikawa-Hidekazu/codex-healthkit/blob/main/SUPPORT.md
+    about: Read what information is useful before asking for help.

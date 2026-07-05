@@ -1,0 +1,27 @@
+name: Documentation improvement
+description: Suggest clearer wording, examples, or missing documentation.
+title: "[Docs]: "
+labels: ["documentation"]
+body:
+  - type: textarea
+    id: page
+    attributes:
+      label: Page or section
+      placeholder: README.md, README.ja.md, docs/safety-boundary.md, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is unclear?
+      placeholder: Describe the confusing or missing information.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested wording or change
+      placeholder: Optional, but very helpful.
+    validations:
+      required: false
+

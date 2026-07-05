@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ -n "${FAKE_CODEX_LOG:-}" ]; then
+  printf '%s\n' "$*" >>"$FAKE_CODEX_LOG"
+fi
+
+case "${1:-}" in
+  --version)
+    printf 'codex-cli fake\n'
+    ;;
+  doctor)
+    if [ "${2:-}" = "--json" ]; then
+      case "${FAKE_CODEX_DOCTOR_MODE:-invalid}" in
+        valid)
+          cat <<'JSON'
+{"overallStatus":"fail","checks":[{"id":"doctor-ok","status":"ok"},{"id":"doctor-warn","status":"warn"},{"id":"doctor-degraded","status":"degraded"},{"id":"doctor-fail","status":"fail"},{"id":"doctor-error","status":"error"}]}
+JSON
+          ;;
+        invalid)
+          printf '{not-json'
+          ;;
+        *)
+          printf '{not-json'
+          ;;
+      esac
+    else
+      printf 'fake doctor\n'
+    fi
+    ;;
+  *)
+    printf 'fake codex\n'
+    ;;
+esac

@@ -1,0 +1,83 @@
+# Safety Boundary
+
+`codex-healthkit` exists to make daily Codex environment checks easier without turning diagnostics into a credential or transcript risk.
+
+## Default Mode
+
+Default command:
+
+```bash
+codex-healthkit check
+```
+
+Default mode performs local file metadata checks only.
+
+It may check:
+
+- whether the `codex` command exists
+- directory sizes
+- `.jsonl` file counts
+- SQLite-related file sizes
+
+It must not read:
+
+- `auth.json`
+- token files
+- cookie stores
+- localStorage
+- OS credential stores
+- SQLite contents
+- session transcript contents
+- account IDs
+- email addresses
+- workspace IDs
+
+`codex-healthkit` counts `.jsonl` files under session directories. Raw file names must not be included in reports.
+
+## Optional Codex Doctor Integration
+
+Command:
+
+```bash
+codex-healthkit check --with-codex-doctor
+```
+
+This runs official `codex doctor --json` and extracts only redacted summary fields.
+
+Important: Codex CLI may perform provider reachability checks when this option is enabled. Do not describe this mode as fully offline or never touching the network.
+
+## Sharing Reports
+
+Reports are intended to be safe to paste into an issue after review, but users should still check them before sharing.
+
+Safe report fields:
+
+- status
+- version string
+- file sizes
+- file counts
+- redacted doctor status counts
+
+Unsafe report fields:
+
+- raw auth details
+- raw doctor output
+- raw paths containing usernames or private project names
+- session IDs
+- file names
+- transcripts
+- account identifiers
+
+## Future Features That Need A New Review
+
+These are intentionally out of scope for v0.1:
+
+- account switching
+- auth status
+- usage or quota estimation from session JSONL
+- session timelines
+- CodexBar integration
+- ctx integration
+- cleanup, archive, or delete actions
+- background daemon mode
+- npm binary packages with platform-specific install logic
