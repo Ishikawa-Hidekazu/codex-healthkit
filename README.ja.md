@@ -4,11 +4,13 @@
 [![License](https://img.shields.io/github/license/Ishikawa-Hidekazu/codex-healthkit)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/Ishikawa-Hidekazu/codex-healthkit?include_prereleases)](https://github.com/Ishikawa-Hidekazu/codex-healthkit/releases)
 
-日常的にCodexを使う人のための、メタデータだけを見るローカル環境ヘルスレポートCLIです。
+日常的にCodexを使う人のための、sessions、SQLite WAL、`codex doctor`、共有用redacted reportをメタデータ中心で確認するCodex CLI health checkです。
 
 [English](README.md)
 
 `codex-healthkit` は、Codexを毎日使う人が、自分のローカル状態を安全に確認し、必要に応じて共有できるレポートを作るための小さなCLIです。
+
+Codex CLI health check、Codexのローカル環境点検、sessionやSQLite WALのmetadata確認、相談前に共有しやすいsafe-to-share reportが必要な時の入口として使えます。
 
 デフォルトではローカルファイルのメタデータだけを確認します。認証情報、token、cookie、SQLiteの中身、session transcriptの中身は読みません。
 

@@ -4,11 +4,13 @@
 [![License](https://img.shields.io/github/license/Ishikawa-Hidekazu/codex-healthkit)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/Ishikawa-Hidekazu/codex-healthkit?include_prereleases)](https://github.com/Ishikawa-Hidekazu/codex-healthkit/releases)
 
-Metadata-only local health reports for daily Codex operators.
+Metadata-only OpenAI Codex CLI health checks for sessions, SQLite WAL, `codex doctor`, and redacted local reports.
 
 [日本語版](README.ja.md)
 
-`codex-healthkit` is a small CLI tool for people who use Codex every day and want a safe, reviewable local health report before debugging, opening an issue, or asking for help.
+`codex-healthkit` is a small CLI tool for people who use Codex every day and want a safe, reviewable local environment report before debugging, opening an issue, or asking for help.
+
+If you are looking for a Codex CLI health check, a safe-to-share Codex local report, or a quick way to inspect session and SQLite WAL metadata, start here.
 
 By default, it performs local file metadata checks only. It does **not** read credentials, token files, cookies, SQLite contents, or session transcript contents.
 
