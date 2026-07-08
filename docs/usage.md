@@ -30,6 +30,41 @@ Validate JSON:
 ./bin/codex-healthkit check --json | jq empty
 ```
 
+## Previous Report Comparison
+
+Run:
+
+```bash
+./bin/codex-healthkit check --json > before.json
+# update Codex CLI, wait a day, or run normal work
+./bin/codex-healthkit check --json --compare before.json
+```
+
+`--compare` reads one explicit previous `codex-healthkit check --json` report and compares metadata-only values with the current check.
+
+Use the default Markdown output for a readable delta table:
+
+```bash
+./bin/codex-healthkit check --compare before.json
+```
+
+It compares:
+
+- `logs_2.sqlite-wal` size
+- `logs_2.sqlite` size
+- active session directory size and `.jsonl` count
+- archived session directory size and `.jsonl` count
+- quarantine directory size
+
+Important:
+
+- requires `jq`
+- does not store history automatically
+- does not upload telemetry
+- does not read SQLite contents
+- does not read session transcript contents
+- comparison output is informational and does not make archived session growth a warning by itself
+
 ## Optional Codex Version
 
 Run:
@@ -86,4 +121,3 @@ Before sharing:
 5. Do not paste raw session transcripts.
 
 When in doubt, share less.
-

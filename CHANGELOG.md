@@ -6,7 +6,7 @@ This project follows a simple pre-1.0 changelog style. Dates use UTC.
 
 ## Unreleased
 
-No changes yet.
+- Add explicit `--compare <previous-report.json>` metadata comparison mode.
 
 ## 0.1.0-alpha.1 - 2026-07-06
 

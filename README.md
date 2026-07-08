@@ -24,6 +24,7 @@ Not affiliated with OpenAI.
 | --- | --- |
 | Safest first check | `./bin/codex-healthkit check` |
 | Machine-readable report | `./bin/codex-healthkit check --json` |
+| Compare with a previous report | `./bin/codex-healthkit check --json --compare before.json` |
 | Include Codex CLI version | `./bin/codex-healthkit check --with-codex-version` |
 | Include official doctor summary | `./bin/codex-healthkit check --with-codex-doctor` |
 
@@ -80,6 +81,16 @@ Save a report:
 ./bin/codex-healthkit check --json > codex-health-report.json
 ```
 
+Compare with an explicit previous report:
+
+```bash
+./bin/codex-healthkit check --json > before.json
+# update Codex CLI, wait a day, or run normal work
+./bin/codex-healthkit check --json --compare before.json
+```
+
+Omit `--json` on the second command when you want a Markdown comparison table.
+
 ## Optional Local Install
 
 If you want `codex-healthkit` on your local `PATH` before package distribution exists:
@@ -107,10 +118,26 @@ It also does not execute the external `codex` command by default.
 ## Options
 
 ```text
-codex-healthkit check [--markdown|--json] [--with-codex-version] [--with-codex-doctor]
+codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--with-codex-version] [--with-codex-doctor]
 codex-healthkit --version
 codex-healthkit --help
 ```
+
+### `--compare`
+
+Reads an explicit previous `codex-healthkit check --json` report and compares metadata-only values with the current check.
+
+Use it with the default Markdown output for a readable delta table, or with `--json` for machine-readable deltas.
+
+It compares:
+
+- `logs_2.sqlite-wal` size
+- `logs_2.sqlite` size
+- active session directory size and `.jsonl` count
+- archived session directory size and `.jsonl` count
+- quarantine directory size
+
+This mode requires `jq`. It does not store history, upload telemetry, read SQLite contents, or read session transcript contents.
 
 ### `--with-codex-version`
 

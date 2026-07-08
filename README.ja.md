@@ -24,6 +24,7 @@ OpenAI公式のプロジェクトではありません。
 | --- | --- |
 | 一番安全な最初の確認 | `./bin/codex-healthkit check` |
 | 機械処理しやすいJSON出力 | `./bin/codex-healthkit check --json` |
+| 前回レポートと比較 | `./bin/codex-healthkit check --json --compare before.json` |
 | Codex CLI versionを含める | `./bin/codex-healthkit check --with-codex-version` |
 | 公式doctor summaryを含める | `./bin/codex-healthkit check --with-codex-doctor` |
 
@@ -80,6 +81,16 @@ JSON出力:
 ./bin/codex-healthkit check --json > codex-health-report.json
 ```
 
+明示的な前回レポートと比較:
+
+```bash
+./bin/codex-healthkit check --json > before.json
+# Codex CLIを更新する、1日待つ、通常作業をする
+./bin/codex-healthkit check --json --compare before.json
+```
+
+2つ目のコマンドで `--json` を外すと、Markdownの比較表として読めます。
+
 ## ローカルインストール
 
 パッケージ配布前にローカルコマンドとして使いたい場合:
@@ -107,10 +118,26 @@ SQLiteデータベースやsession transcriptの中身は開きません。
 ## オプション
 
 ```text
-codex-healthkit check [--markdown|--json] [--with-codex-version] [--with-codex-doctor]
+codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--with-codex-version] [--with-codex-doctor]
 codex-healthkit --version
 codex-healthkit --help
 ```
+
+### `--compare`
+
+明示的に指定した過去の `codex-healthkit check --json` レポートを読み、現在のmetadata-only値と比較します。
+
+通常のMarkdown出力では読みやすい差分表として、`--json` では機械処理しやすいdeltaとして出力します。
+
+比較するもの:
+
+- `logs_2.sqlite-wal` のサイズ
+- `logs_2.sqlite` のサイズ
+- active session directory のサイズと `.jsonl` 数
+- archived session directory のサイズと `.jsonl` 数
+- quarantine directory のサイズ
+
+このモードには `jq` が必要です。historyを自動保存せず、telemetry送信もせず、SQLiteの中身やsession transcriptの中身は読みません。
 
 ### `--with-codex-version`
 

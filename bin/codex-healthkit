@@ -5,6 +5,10 @@ VERSION="0.1.0-alpha.1"
 FORMAT="markdown"
 WITH_CODEX_VERSION=0
 WITH_CODEX_DOCTOR=0
+COMPARE_FILE=""
+COMPARE_REQUESTED=0
+COMPARE_LOADED=0
+COMPARE_NOTE="not requested; pass --compare <previous-report.json> to compare metadata deltas"
 COMMAND="check"
 
 usage() {
@@ -12,7 +16,7 @@ usage() {
 codex-healthkit - local metadata health checks for daily Codex operators
 
 Usage:
-  codex-healthkit check [--markdown|--json] [--with-codex-version] [--with-codex-doctor]
+  codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--with-codex-version] [--with-codex-doctor]
   codex-healthkit --version
   codex-healthkit --help
 
@@ -22,6 +26,8 @@ Default behavior:
   it does not execute the external codex command.
 
 Optional:
+  --compare <previous-report.json> compares current metadata with an explicit
+     previous codex-healthkit JSON report. Requires jq. Does not store history.
   --with-codex-version runs `codex --version`.
   --with-codex-doctor runs official `codex doctor --json` and extracts only
   redacted status counts. Codex CLI may perform provider
@@ -163,6 +169,202 @@ overall_status_for() {
   fi
 }
 
+human_bytes_value() {
+  local bytes="$1"
+  local abs="$bytes"
+
+  if [ "$abs" -lt 0 ]; then
+    abs=$((-abs))
+  fi
+
+  if [ "$abs" -ge 1073741824 ]; then
+    awk -v bytes="$abs" 'BEGIN { printf "%.1fG", bytes / 1073741824 }'
+  elif [ "$abs" -ge 1048576 ]; then
+    awk -v bytes="$abs" 'BEGIN { printf "%.1fM", bytes / 1048576 }'
+  elif [ "$abs" -ge 1024 ]; then
+    awk -v bytes="$abs" 'BEGIN { printf "%.1fK", bytes / 1024 }'
+  else
+    printf '%dB' "$abs"
+  fi
+}
+
+signed_human_delta_bytes() {
+  local delta="$1"
+  if [ "$delta" -gt 0 ]; then
+    printf '+%s' "$(human_bytes_value "$delta")"
+  elif [ "$delta" -lt 0 ]; then
+    printf -- '-%s' "$(human_bytes_value "$delta")"
+  else
+    printf '0B'
+  fi
+}
+
+signed_delta_count() {
+  local delta="$1"
+  if [ "$delta" -gt 0 ]; then
+    printf '+%d' "$delta"
+  else
+    printf '%d' "$delta"
+  fi
+}
+
+direction_for_delta() {
+  local delta="$1"
+  if [ "$delta" -gt 0 ]; then
+    printf 'increased'
+  elif [ "$delta" -lt 0 ]; then
+    printf 'decreased'
+  else
+    printf 'unchanged'
+  fi
+}
+
+previous_number() {
+  local filter="$1"
+  jq -er "$filter // 0 | if type == \"number\" then . else 0 end" "$COMPARE_FILE" 2>/dev/null || printf '0'
+}
+
+previous_string() {
+  local filter="$1"
+  jq -r "$filter // \"\"" "$COMPARE_FILE" 2>/dev/null || printf ''
+}
+
+comparison_json() {
+  if [ "$COMPARE_REQUESTED" -ne 1 ]; then
+    cat <<JSON
+{
+    "requested": false,
+    "loaded": false,
+    "note": $(json_string "$COMPARE_NOTE")
+  }
+JSON
+    return
+  fi
+
+  cat <<JSON
+{
+    "requested": true,
+    "loaded": $(bool_json "$COMPARE_LOADED"),
+    "previous_generated_at": $(json_string "$PREVIOUS_GENERATED_AT"),
+    "note": $(json_string "$COMPARE_NOTE"),
+    "items": {
+      "logs_2_sqlite_wal": {
+        "previous_bytes": $PREV_LOG_WAL_BYTES,
+        "current_bytes": $LOG_WAL_BYTES,
+        "delta_bytes": $DELTA_LOG_WAL_BYTES,
+        "direction": $(json_string "$(direction_for_delta "$DELTA_LOG_WAL_BYTES")")
+      },
+      "logs_2_sqlite": {
+        "previous_bytes": $PREV_LOG_DB_BYTES,
+        "current_bytes": $LOG_DB_BYTES,
+        "delta_bytes": $DELTA_LOG_DB_BYTES,
+        "direction": $(json_string "$(direction_for_delta "$DELTA_LOG_DB_BYTES")")
+      },
+      "sessions_bytes": {
+        "previous_bytes": $PREV_SESSIONS_BYTES,
+        "current_bytes": $SESSIONS_BYTES,
+        "delta_bytes": $DELTA_SESSIONS_BYTES,
+        "direction": $(json_string "$(direction_for_delta "$DELTA_SESSIONS_BYTES")")
+      },
+      "sessions_jsonl_count": {
+        "previous_count": $PREV_SESSIONS_COUNT,
+        "current_count": $SESSIONS_COUNT,
+        "delta_count": $DELTA_SESSIONS_COUNT,
+        "direction": $(json_string "$(direction_for_delta "$DELTA_SESSIONS_COUNT")")
+      },
+      "archived_sessions_bytes": {
+        "previous_bytes": $PREV_ARCHIVED_BYTES,
+        "current_bytes": $ARCHIVED_BYTES,
+        "delta_bytes": $DELTA_ARCHIVED_BYTES,
+        "direction": $(json_string "$(direction_for_delta "$DELTA_ARCHIVED_BYTES")")
+      },
+      "archived_sessions_jsonl_count": {
+        "previous_count": $PREV_ARCHIVED_COUNT,
+        "current_count": $ARCHIVED_COUNT,
+        "delta_count": $DELTA_ARCHIVED_COUNT,
+        "direction": $(json_string "$(direction_for_delta "$DELTA_ARCHIVED_COUNT")")
+      },
+      "quarantine_bytes": {
+        "previous_bytes": $PREV_QUARANTINE_BYTES,
+        "current_bytes": $QUARANTINE_BYTES,
+        "delta_bytes": $DELTA_QUARANTINE_BYTES,
+        "direction": $(json_string "$(direction_for_delta "$DELTA_QUARANTINE_BYTES")")
+      }
+    }
+  }
+JSON
+}
+
+comparison_markdown() {
+  if [ "$COMPARE_REQUESTED" -ne 1 ]; then
+    return
+  fi
+
+  cat <<MARKDOWN
+
+## Previous Report Comparison
+
+- requested: \`yes\`
+- previous_generated_at: \`$(markdown_inline "$PREVIOUS_GENERATED_AT")\`
+- note: $(markdown_inline "$COMPARE_NOTE")
+
+| item | previous | current | delta | note |
+|---|---:|---:|---:|---|
+| logs_2.sqlite-wal | $(human_bytes_value "$PREV_LOG_WAL_BYTES") | $(human_bytes_value "$LOG_WAL_BYTES") | $(signed_human_delta_bytes "$DELTA_LOG_WAL_BYTES") | size only; SQLite contents not read |
+| logs_2.sqlite | $(human_bytes_value "$PREV_LOG_DB_BYTES") | $(human_bytes_value "$LOG_DB_BYTES") | $(signed_human_delta_bytes "$DELTA_LOG_DB_BYTES") | size only; SQLite contents not read |
+| active sessions | $(human_bytes_value "$PREV_SESSIONS_BYTES") / $PREV_SESSIONS_COUNT | $(human_bytes_value "$SESSIONS_BYTES") / $SESSIONS_COUNT | $(signed_human_delta_bytes "$DELTA_SESSIONS_BYTES") / $(signed_delta_count "$DELTA_SESSIONS_COUNT") | file count only; transcript contents not read |
+| archived sessions | $(human_bytes_value "$PREV_ARCHIVED_BYTES") / $PREV_ARCHIVED_COUNT | $(human_bytes_value "$ARCHIVED_BYTES") / $ARCHIVED_COUNT | $(signed_human_delta_bytes "$DELTA_ARCHIVED_BYTES") / $(signed_delta_count "$DELTA_ARCHIVED_COUNT") | normal growth can be expected; review before deleting |
+| quarantine | $(human_bytes_value "$PREV_QUARANTINE_BYTES") | $(human_bytes_value "$QUARANTINE_BYTES") | $(signed_human_delta_bytes "$DELTA_QUARANTINE_BYTES") | metadata only |
+MARKDOWN
+}
+
+load_previous_report() {
+  local previous_tool
+
+  if [ "$COMPARE_REQUESTED" -ne 1 ]; then
+    return
+  fi
+
+  if [ ! -r "$COMPARE_FILE" ]; then
+    die "--compare file is not readable"
+  fi
+
+  if ! command -v jq >/dev/null 2>&1; then
+    die "--compare requires jq to read a previous codex-healthkit JSON report"
+  fi
+
+  previous_tool="$(jq -r '.tool // empty' "$COMPARE_FILE" 2>/dev/null)" ||
+    die "--compare expects a valid codex-healthkit JSON report"
+
+  if [ "$previous_tool" != "codex-healthkit" ]; then
+    die "--compare expects output from codex-healthkit check --json"
+  fi
+
+  PREVIOUS_GENERATED_AT="$(previous_string '.generated_at')"
+  if [ -z "$PREVIOUS_GENERATED_AT" ]; then
+    PREVIOUS_GENERATED_AT="unknown"
+  fi
+
+  PREV_LOG_WAL_BYTES="$(previous_number '.state.logs_2_sqlite_wal.bytes')"
+  PREV_LOG_DB_BYTES="$(previous_number '.state.logs_2_sqlite.bytes')"
+  PREV_SESSIONS_BYTES="$(previous_number '.state.sessions.bytes')"
+  PREV_SESSIONS_COUNT="$(previous_number '.state.sessions.jsonl_count')"
+  PREV_ARCHIVED_BYTES="$(previous_number '.state.archived_sessions.bytes')"
+  PREV_ARCHIVED_COUNT="$(previous_number '.state.archived_sessions.jsonl_count')"
+  PREV_QUARANTINE_BYTES="$(previous_number '.state.quarantine.bytes')"
+
+  DELTA_LOG_WAL_BYTES=$((LOG_WAL_BYTES - PREV_LOG_WAL_BYTES))
+  DELTA_LOG_DB_BYTES=$((LOG_DB_BYTES - PREV_LOG_DB_BYTES))
+  DELTA_SESSIONS_BYTES=$((SESSIONS_BYTES - PREV_SESSIONS_BYTES))
+  DELTA_SESSIONS_COUNT=$((SESSIONS_COUNT - PREV_SESSIONS_COUNT))
+  DELTA_ARCHIVED_BYTES=$((ARCHIVED_BYTES - PREV_ARCHIVED_BYTES))
+  DELTA_ARCHIVED_COUNT=$((ARCHIVED_COUNT - PREV_ARCHIVED_COUNT))
+  DELTA_QUARANTINE_BYTES=$((QUARANTINE_BYTES - PREV_QUARANTINE_BYTES))
+
+  COMPARE_LOADED=1
+  COMPARE_NOTE="explicit previous report loaded; comparison uses metadata already emitted by codex-healthkit and is informational"
+}
+
 run_codex_doctor() {
   local doctor_json doctor_exit doctor_summary
   doctor_exit=0
@@ -253,6 +455,17 @@ while [ "$#" -gt 0 ]; do
     --with-codex-doctor)
       WITH_CODEX_DOCTOR=1
       ;;
+    --compare)
+      shift
+      [ "$#" -gt 0 ] || die "--compare requires a previous report path"
+      COMPARE_FILE="$1"
+      COMPARE_REQUESTED=1
+      ;;
+    --compare=*)
+      COMPARE_FILE="${1#--compare=}"
+      [ -n "$COMPARE_FILE" ] || die "--compare requires a previous report path"
+      COMPARE_REQUESTED=1
+      ;;
     --version)
       printf 'codex-healthkit %s\n' "$VERSION"
       exit 0
@@ -334,6 +547,23 @@ if [ "$DOCTOR_RAN" = "1" ]; then
   fi
 fi
 
+PREVIOUS_GENERATED_AT=""
+PREV_LOG_WAL_BYTES=0
+PREV_LOG_DB_BYTES=0
+PREV_SESSIONS_BYTES=0
+PREV_SESSIONS_COUNT=0
+PREV_ARCHIVED_BYTES=0
+PREV_ARCHIVED_COUNT=0
+PREV_QUARANTINE_BYTES=0
+DELTA_LOG_WAL_BYTES=0
+DELTA_LOG_DB_BYTES=0
+DELTA_SESSIONS_BYTES=0
+DELTA_SESSIONS_COUNT=0
+DELTA_ARCHIVED_BYTES=0
+DELTA_ARCHIVED_COUNT=0
+DELTA_QUARANTINE_BYTES=0
+load_previous_report
+
 if [ "$FORMAT" = "json" ]; then
   cat <<JSON
 {
@@ -382,6 +612,7 @@ if [ "$FORMAT" = "json" ]; then
       "size": $(json_string "$LOG_WAL_SIZE")
     }
   },
+  "comparison": $(comparison_json),
   "official_codex_doctor": {
     "requested": $(bool_json "$DOCTOR_REQUESTED"),
     "ran": $(bool_json "$DOCTOR_RAN"),
@@ -431,6 +662,11 @@ Generated: $GENERATED_AT
 | logs_2.sqlite | $(if [ "$LOG_DB_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $LOG_DB_BYTES | $LOG_DB_SIZE | - | size only; SQLite contents not read |
 | logs_2.sqlite-shm | $(if [ "$LOG_SHM_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $LOG_SHM_BYTES | $LOG_SHM_SIZE | - | size only |
 | logs_2.sqlite-wal | $(if [ "$LOG_WAL_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $LOG_WAL_BYTES | $LOG_WAL_SIZE | - | size only |
+MARKDOWN
+
+comparison_markdown
+
+cat <<MARKDOWN
 
 ## Official Codex Doctor
 

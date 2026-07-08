@@ -46,6 +46,32 @@ This runs official `codex doctor --json` and extracts only redacted summary fiel
 
 Important: Codex CLI may perform provider reachability checks when this option is enabled. Do not describe this mode as fully offline or never touching the network.
 
+## Optional Previous Report Comparison
+
+Command:
+
+```bash
+codex-healthkit check --json --compare previous-report.json
+```
+
+This reads one explicit previous `codex-healthkit check --json` report and compares only metadata values that `codex-healthkit` already emits.
+
+It may compare:
+
+- SQLite-related file sizes
+- session directory sizes
+- `.jsonl` file counts
+- quarantine directory size
+
+It must not:
+
+- store history automatically
+- upload telemetry
+- read credentials, tokens, or cookies
+- read SQLite contents
+- read session transcript contents
+- treat archived session growth as a warning by itself
+
 ## Sharing Reports
 
 Reports are intended to be safe to paste into an issue after review, but users should still check them before sharing.
