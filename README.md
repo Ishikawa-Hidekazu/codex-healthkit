@@ -151,7 +151,10 @@ Use this only when you want the report to include the installed Codex CLI versio
 
 ### `--with-codex-doctor`
 
-Runs:
+The default check does not execute `codex`. Use this option only when you also
+want a summary from the official Codex CLI doctor command.
+
+When explicitly requested, it runs:
 
 ```bash
 codex doctor --json
@@ -160,10 +163,12 @@ codex doctor --json
 Important:
 
 - this mode requires `jq`
-- Codex CLI may perform provider reachability checks
+- Codex CLI may perform provider reachability checks through your existing Codex configuration
 - this mode is not fully offline
-- `codex-healthkit` extracts only redacted status counts
+- `codex-healthkit` reports only redacted summary fields: `status`, `ok`, `warn`, `fail`, and a note
 - raw `codex doctor` output is not included in the report
+- session transcript contents and SQLite contents are not read
+- this option does not add cleanup, delete, or usage-dashboard behavior
 
 ## Example Output
 

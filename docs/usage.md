@@ -83,6 +83,9 @@ Use it when an issue or debugging conversation needs the installed Codex CLI ver
 
 ## Optional Official Doctor Summary
 
+The default check does not execute the external `codex` command. Add the
+doctor option only when the official Codex CLI diagnostics are needed.
+
 Run:
 
 ```bash
@@ -98,9 +101,13 @@ codex doctor --json
 Important:
 
 - requires `jq`
-- may perform provider reachability checks through Codex CLI
+- runs official `codex doctor --json` only when this option is explicitly provided
+- Codex CLI may perform provider reachability checks through the existing Codex configuration
 - not fully offline
+- only redacted `status`, `ok`, `warn`, `fail`, and note fields are included
 - raw doctor output is not included in the report
+- session transcript contents and SQLite contents are not read
+- no cleanup, delete, or usage-dashboard behavior is added
 
 ## Interpreting Summary Status
 

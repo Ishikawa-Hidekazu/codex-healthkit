@@ -30,8 +30,9 @@ Optional:
      previous codex-healthkit JSON report. Requires jq. Does not store history.
   --with-codex-version runs `codex --version`.
   --with-codex-doctor runs official `codex doctor --json` and extracts only
-  redacted status counts. Codex CLI may perform provider
-  reachability checks when this option is enabled.
+     redacted summary fields (status, ok/warn/fail counts, and a note). Raw
+     doctor output is not included. Codex CLI may perform provider reachability
+     checks through the existing Codex configuration when this option is enabled.
 USAGE
 }
 

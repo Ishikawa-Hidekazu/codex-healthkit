@@ -12,6 +12,9 @@ codex-healthkit check
 
 Default mode performs local file metadata checks only.
 
+It does not execute the external `codex` command. Running official Codex CLI
+diagnostics requires the explicit `--with-codex-doctor` option described below.
+
 It may check:
 
 - whether the `codex` command exists
@@ -42,9 +45,15 @@ Command:
 codex-healthkit check --with-codex-doctor
 ```
 
-This runs official `codex doctor --json` and extracts only redacted summary fields.
+Only when explicitly requested, this runs official `codex doctor --json`.
+`codex-healthkit` includes only redacted `status`, `ok`, `warn`, `fail`, and
+note fields in its report. Raw doctor output is not included.
 
-Important: Codex CLI may perform provider reachability checks when this option is enabled. Do not describe this mode as fully offline or never touching the network.
+Important: Codex CLI may perform provider reachability checks through the
+existing Codex configuration when this option is enabled. Do not describe this
+mode as fully offline or never touching the network. This option does not read
+session transcript contents or SQLite contents, and it does not add cleanup,
+delete, or usage-dashboard behavior.
 
 ## Optional Previous Report Comparison
 
