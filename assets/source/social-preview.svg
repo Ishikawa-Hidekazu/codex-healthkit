@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <rect width="1280" height="640" fill="#0b1117"/>
+  <rect x="72" y="70" width="14" height="132" fill="#67d391"/>
+  <text x="120" y="126" fill="#f4f7f8" font-family="Arial, sans-serif" font-size="58" font-weight="700">codex-healthkit</text>
+  <text x="120" y="188" fill="#a9b7c2" font-family="Arial, sans-serif" font-size="30">Metadata-only health reports for daily Codex CLI operators</text>
+
+  <rect x="72" y="264" width="1136" height="196" rx="8" fill="#121b23" stroke="#2c3b47" stroke-width="2"/>
+  <text x="110" y="318" fill="#67d391" font-family="Arial, sans-serif" font-size="24" font-weight="700">CHECK</text>
+  <text x="110" y="357" fill="#f4f7f8" font-family="Menlo, monospace" font-size="23">sessions · SQLite WAL · local state</text>
+  <text x="110" y="414" fill="#7fc8e8" font-family="Arial, sans-serif" font-size="24" font-weight="700">COMPARE</text>
+  <text x="275" y="414" fill="#f4f7f8" font-family="Menlo, monospace" font-size="23">explicit before / after metadata</text>
+
+  <line x1="760" y1="300" x2="760" y2="424" stroke="#2c3b47" stroke-width="2"/>
+  <text x="806" y="322" fill="#f3b567" font-family="Arial, sans-serif" font-size="23" font-weight="700">READS NO</text>
+  <text x="806" y="361" fill="#f4f7f8" font-family="Arial, sans-serif" font-size="22">credentials or tokens</text>
+  <text x="806" y="395" fill="#f4f7f8" font-family="Arial, sans-serif" font-size="22">SQLite or transcript contents</text>
+
+  <text x="72" y="538" fill="#a9b7c2" font-family="Arial, sans-serif" font-size="22">On demand • Read only • No daemon • No dashboard</text>
+  <text x="1208" y="538" fill="#67d391" text-anchor="end" font-family="Menlo, monospace" font-size="22">source-only alpha</text>
+  <text x="72" y="590" fill="#566672" font-family="Arial, sans-serif" font-size="17">Synthetic visual • No real Codex data</text>
+</svg>

@@ -40,8 +40,8 @@ cd codex-healthkit
 Run checks:
 
 ```bash
-bash -n bin/codex-healthkit tests/run.sh tests/fixtures/fake-bin/codex
-shellcheck bin/codex-healthkit tests/run.sh tests/fixtures/fake-bin/codex
+bash -n bin/codex-healthkit scripts/render-visuals.sh tests/run.sh tests/fixtures/fake-bin/codex
+shellcheck bin/codex-healthkit scripts/render-visuals.sh tests/run.sh tests/fixtures/fake-bin/codex
 tests/run.sh
 ```
 
