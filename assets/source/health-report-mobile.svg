@@ -2,20 +2,20 @@
   <rect width="750" height="1200" fill="#0b1117"/>
   <rect x="36" y="34" width="10" height="92" fill="#67d391"/>
   <text x="70" y="76" fill="#f4f7f8" font-family="Arial, sans-serif" font-size="38" font-weight="700">codex-healthkit</text>
-  <text x="70" y="114" fill="#a9b7c2" font-family="Arial, sans-serif" font-size="21">Metadata-only Codex CLI health reports</text>
+  <text x="70" y="114" fill="#c2cdd4" font-family="Arial, sans-serif" font-size="22" font-weight="600">Metadata-only Codex CLI health reports</text>
 
   <rect x="36" y="158" width="678" height="430" rx="8" fill="#121b23" stroke="#2c3b47" stroke-width="2"/>
   <text x="66" y="206" fill="#67d391" font-family="Arial, sans-serif" font-size="25" font-weight="700">DEFAULT HEALTH REPORT</text>
-  <text x="66" y="247" fill="#a9b7c2" font-family="Menlo, monospace" font-size="20">status</text>
-  <text x="680" y="247" fill="#67d391" text-anchor="end" font-family="Menlo, monospace" font-size="21">ok</text>
+  <text x="66" y="247" fill="#c2cdd4" font-family="Menlo, monospace" font-size="22" font-weight="600">status</text>
+  <text x="680" y="247" fill="#67d391" text-anchor="end" font-family="Menlo, monospace" font-size="22" font-weight="700">ok</text>
   <line x1="66" y1="270" x2="684" y2="270" stroke="#2c3b47" stroke-width="2"/>
 
-  <text x="66" y="316" fill="#a9b7c2" font-family="Menlo, monospace" font-size="20">active sessions</text>
-  <text x="680" y="316" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="20">18 MB / 42 files</text>
-  <text x="66" y="364" fill="#a9b7c2" font-family="Menlo, monospace" font-size="20">archived sessions</text>
-  <text x="680" y="364" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="20">6 MB / 7 files</text>
-  <text x="66" y="412" fill="#a9b7c2" font-family="Menlo, monospace" font-size="20">SQLite WAL</text>
-  <text x="680" y="412" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="20">6 MB / size only</text>
+  <text x="66" y="316" fill="#c2cdd4" font-family="Menlo, monospace" font-size="22" font-weight="600">active sessions</text>
+  <text x="680" y="316" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="22" font-weight="600">18 MB / 42 files</text>
+  <text x="66" y="364" fill="#c2cdd4" font-family="Menlo, monospace" font-size="22" font-weight="600">archived sessions</text>
+  <text x="680" y="364" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="22" font-weight="600">6 MB / 7 files</text>
+  <text x="66" y="412" fill="#c2cdd4" font-family="Menlo, monospace" font-size="22" font-weight="600">SQLite WAL</text>
+  <text x="680" y="412" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="22" font-weight="600">6 MB / size only</text>
 
   <line x1="66" y1="442" x2="684" y2="442" stroke="#2c3b47" stroke-width="2"/>
   <text x="66" y="486" fill="#67d391" font-family="Arial, sans-serif" font-size="19" font-weight="700">NO CREDENTIALS OR TOKENS</text>
@@ -24,20 +24,20 @@
 
   <rect x="36" y="622" width="678" height="430" rx="8" fill="#121b23" stroke="#2c3b47" stroke-width="2"/>
   <text x="66" y="670" fill="#7fc8e8" font-family="Arial, sans-serif" font-size="25" font-weight="700">BEFORE / AFTER COMPARISON</text>
-  <text x="66" y="713" fill="#a9b7c2" font-family="Arial, sans-serif" font-size="18">Only the report you explicitly provide</text>
+  <text x="66" y="713" fill="#c2cdd4" font-family="Arial, sans-serif" font-size="21" font-weight="600">Only the report you explicitly provide</text>
   <line x1="66" y1="738" x2="684" y2="738" stroke="#2c3b47" stroke-width="2"/>
 
-  <text x="66" y="785" fill="#a9b7c2" font-family="Menlo, monospace" font-size="18">SQLite WAL</text>
-  <text x="66" y="829" fill="#f4f7f8" font-family="Menlo, monospace" font-size="21">6 MB  →  9 MB</text>
-  <text x="680" y="829" fill="#f3b567" text-anchor="end" font-family="Menlo, monospace" font-size="21">+3 MB</text>
+  <text x="66" y="785" fill="#c2cdd4" font-family="Menlo, monospace" font-size="21" font-weight="600">SQLite WAL</text>
+  <text x="66" y="829" fill="#f4f7f8" font-family="Menlo, monospace" font-size="23" font-weight="600">6 MB  →  9 MB</text>
+  <text x="680" y="829" fill="#ffc977" text-anchor="end" font-family="Menlo, monospace" font-size="23" font-weight="700">+3 MB</text>
 
-  <text x="66" y="887" fill="#a9b7c2" font-family="Menlo, monospace" font-size="18">archived sessions</text>
-  <text x="66" y="931" fill="#f4f7f8" font-family="Menlo, monospace" font-size="21">42  →  44 files</text>
-  <text x="680" y="931" fill="#7fc8e8" text-anchor="end" font-family="Menlo, monospace" font-size="21">+2 normal</text>
+  <text x="66" y="887" fill="#c2cdd4" font-family="Menlo, monospace" font-size="21" font-weight="600">archived sessions</text>
+  <text x="66" y="931" fill="#f4f7f8" font-family="Menlo, monospace" font-size="23" font-weight="600">42  →  44 files</text>
+  <text x="680" y="931" fill="#8fd5f1" text-anchor="end" font-family="Menlo, monospace" font-size="23" font-weight="700">+2 normal</text>
 
   <line x1="66" y1="968" x2="684" y2="968" stroke="#2c3b47" stroke-width="2"/>
-  <text x="66" y="1010" fill="#a9b7c2" font-family="Arial, sans-serif" font-size="18">Informational • No automatic history</text>
+  <text x="66" y="1010" fill="#c2cdd4" font-family="Arial, sans-serif" font-size="21" font-weight="600">Informational • No automatic history</text>
 
-  <text x="36" y="1112" fill="#6f7f8b" font-family="Arial, sans-serif" font-size="17">Synthetic fixture data</text>
-  <text x="36" y="1143" fill="#6f7f8b" font-family="Arial, sans-serif" font-size="17">No real Codex state, paths, accounts, or transcripts</text>
+  <text x="36" y="1112" fill="#a9b7c2" font-family="Arial, sans-serif" font-size="20" font-weight="600">Fixture-only data</text>
+  <text x="36" y="1143" fill="#a9b7c2" font-family="Arial, sans-serif" font-size="20" font-weight="600">No real Codex state, paths, accounts, or transcripts</text>
 </svg>

@@ -2,24 +2,24 @@
   <rect width="1200" height="960" fill="#0b1117"/>
   <rect x="48" y="42" width="12" height="88" fill="#67d391"/>
   <text x="84" y="82" fill="#f4f7f8" font-family="Arial, sans-serif" font-size="42" font-weight="700">codex-healthkit</text>
-  <text x="84" y="120" fill="#a9b7c2" font-family="Arial, sans-serif" font-size="23">On-demand, metadata-only Codex CLI health reports</text>
+  <text x="84" y="120" fill="#c2cdd4" font-family="Arial, sans-serif" font-size="24" font-weight="600">On-demand, metadata-only Codex CLI health reports</text>
 
   <rect x="48" y="164" width="1104" height="326" rx="8" fill="#121b23" stroke="#2c3b47" stroke-width="2"/>
   <text x="80" y="211" fill="#67d391" font-family="Arial, sans-serif" font-size="25" font-weight="700">DEFAULT HEALTH REPORT</text>
-  <text x="1080" y="211" fill="#a9b7c2" text-anchor="end" font-family="Menlo, monospace" font-size="18">status: ok</text>
+  <text x="1080" y="211" fill="#c2cdd4" text-anchor="end" font-family="Menlo, monospace" font-size="21" font-weight="600">status: ok</text>
   <line x1="80" y1="232" x2="1120" y2="232" stroke="#2c3b47" stroke-width="2"/>
 
-  <text x="80" y="278" fill="#a9b7c2" font-family="Menlo, monospace" font-size="20">active sessions</text>
-  <text x="630" y="278" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="20">18 MB / 42 files</text>
-  <text x="670" y="278" fill="#7fc8e8" font-family="Menlo, monospace" font-size="18">metadata only</text>
+  <text x="80" y="278" fill="#c2cdd4" font-family="Menlo, monospace" font-size="22" font-weight="600">active sessions</text>
+  <text x="630" y="278" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="22" font-weight="600">18 MB / 42 files</text>
+  <text x="670" y="278" fill="#8fd5f1" font-family="Menlo, monospace" font-size="21" font-weight="600">metadata only</text>
 
-  <text x="80" y="324" fill="#a9b7c2" font-family="Menlo, monospace" font-size="20">archived sessions</text>
-  <text x="630" y="324" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="20">6 MB / 7 files</text>
-  <text x="670" y="324" fill="#7fc8e8" font-family="Menlo, monospace" font-size="18">metadata only</text>
+  <text x="80" y="324" fill="#c2cdd4" font-family="Menlo, monospace" font-size="22" font-weight="600">archived sessions</text>
+  <text x="630" y="324" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="22" font-weight="600">6 MB / 7 files</text>
+  <text x="670" y="324" fill="#8fd5f1" font-family="Menlo, monospace" font-size="21" font-weight="600">metadata only</text>
 
-  <text x="80" y="370" fill="#a9b7c2" font-family="Menlo, monospace" font-size="20">logs_2.sqlite-wal</text>
-  <text x="630" y="370" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="20">6 MB</text>
-  <text x="670" y="370" fill="#7fc8e8" font-family="Menlo, monospace" font-size="18">size only</text>
+  <text x="80" y="370" fill="#c2cdd4" font-family="Menlo, monospace" font-size="22" font-weight="600">logs_2.sqlite-wal</text>
+  <text x="630" y="370" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="22" font-weight="600">6 MB</text>
+  <text x="670" y="370" fill="#8fd5f1" font-family="Menlo, monospace" font-size="21" font-weight="600">size only</text>
 
   <line x1="80" y1="398" x2="1120" y2="398" stroke="#2c3b47" stroke-width="2"/>
   <text x="80" y="440" fill="#67d391" font-family="Arial, sans-serif" font-size="19" font-weight="700">NO CREDENTIALS</text>
@@ -29,27 +29,27 @@
 
   <rect x="48" y="522" width="1104" height="326" rx="8" fill="#121b23" stroke="#2c3b47" stroke-width="2"/>
   <text x="80" y="569" fill="#7fc8e8" font-family="Arial, sans-serif" font-size="25" font-weight="700">EXPLICIT BEFORE / AFTER COMPARISON</text>
-  <text x="1080" y="569" fill="#a9b7c2" text-anchor="end" font-family="Menlo, monospace" font-size="18">informational</text>
+  <text x="1080" y="569" fill="#c2cdd4" text-anchor="end" font-family="Menlo, monospace" font-size="21" font-weight="600">informational</text>
   <line x1="80" y1="590" x2="1120" y2="590" stroke="#2c3b47" stroke-width="2"/>
 
-  <text x="80" y="640" fill="#a9b7c2" font-family="Menlo, monospace" font-size="19">ITEM</text>
-  <text x="540" y="640" fill="#a9b7c2" text-anchor="end" font-family="Menlo, monospace" font-size="19">BEFORE</text>
-  <text x="760" y="640" fill="#a9b7c2" text-anchor="end" font-family="Menlo, monospace" font-size="19">NOW</text>
-  <text x="1050" y="640" fill="#a9b7c2" text-anchor="end" font-family="Menlo, monospace" font-size="19">DELTA</text>
+  <text x="80" y="640" fill="#c2cdd4" font-family="Menlo, monospace" font-size="21" font-weight="700">ITEM</text>
+  <text x="540" y="640" fill="#c2cdd4" text-anchor="end" font-family="Menlo, monospace" font-size="21" font-weight="700">BEFORE</text>
+  <text x="760" y="640" fill="#c2cdd4" text-anchor="end" font-family="Menlo, monospace" font-size="21" font-weight="700">NOW</text>
+  <text x="1050" y="640" fill="#c2cdd4" text-anchor="end" font-family="Menlo, monospace" font-size="21" font-weight="700">DELTA</text>
 
-  <text x="80" y="694" fill="#f4f7f8" font-family="Menlo, monospace" font-size="21">SQLite WAL</text>
-  <text x="540" y="694" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="21">6 MB</text>
-  <text x="760" y="694" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="21">9 MB</text>
-  <text x="1050" y="694" fill="#f3b567" text-anchor="end" font-family="Menlo, monospace" font-size="21">+3 MB</text>
+  <text x="80" y="694" fill="#f4f7f8" font-family="Menlo, monospace" font-size="23" font-weight="600">SQLite WAL</text>
+  <text x="540" y="694" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="23" font-weight="600">6 MB</text>
+  <text x="760" y="694" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="23" font-weight="600">9 MB</text>
+  <text x="1050" y="694" fill="#ffc977" text-anchor="end" font-family="Menlo, monospace" font-size="23" font-weight="700">+3 MB</text>
 
-  <text x="80" y="746" fill="#f4f7f8" font-family="Menlo, monospace" font-size="21">archived sessions</text>
-  <text x="540" y="746" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="21">42 files</text>
-  <text x="760" y="746" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="21">44 files</text>
-  <text x="1050" y="746" fill="#7fc8e8" text-anchor="end" font-family="Menlo, monospace" font-size="21">+2 normal</text>
+  <text x="80" y="746" fill="#f4f7f8" font-family="Menlo, monospace" font-size="23" font-weight="600">archived sessions</text>
+  <text x="540" y="746" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="23" font-weight="600">42 files</text>
+  <text x="760" y="746" fill="#f4f7f8" text-anchor="end" font-family="Menlo, monospace" font-size="23" font-weight="600">44 files</text>
+  <text x="1050" y="746" fill="#8fd5f1" text-anchor="end" font-family="Menlo, monospace" font-size="23" font-weight="700">+2 normal</text>
 
   <line x1="80" y1="778" x2="1120" y2="778" stroke="#2c3b47" stroke-width="2"/>
-  <text x="80" y="816" fill="#a9b7c2" font-family="Arial, sans-serif" font-size="18">No automatic history. Compare only the report you explicitly provide.</text>
+  <text x="80" y="816" fill="#c2cdd4" font-family="Arial, sans-serif" font-size="21" font-weight="600">No automatic history. Compare only the report you explicitly provide.</text>
 
-  <text x="48" y="909" fill="#6f7f8b" font-family="Arial, sans-serif" font-size="18">Synthetic fixture data • No real Codex state, paths, accounts, or transcripts</text>
-  <text x="1152" y="909" fill="#6f7f8b" text-anchor="end" font-family="Arial, sans-serif" font-size="18">Source included in repository</text>
+  <text x="48" y="909" fill="#a9b7c2" font-family="Arial, sans-serif" font-size="20" font-weight="600">Fixture-only data • No real Codex state, paths, accounts, or transcripts</text>
+  <text x="1152" y="909" fill="#a9b7c2" text-anchor="end" font-family="Arial, sans-serif" font-size="20" font-weight="600">Reproducible source included</text>
 </svg>

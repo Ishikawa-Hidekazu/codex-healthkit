@@ -8,15 +8,9 @@ Metadata-only OpenAI Codex CLI health checks for sessions, SQLite WAL, `codex do
 
 [日本語版](README.ja.md)
 
-`codex-healthkit` is a small CLI tool for people who use Codex every day and want a safe, reviewable local environment report before debugging, opening an issue, or asking for help.
+`codex-healthkit` is an on-demand CLI health report for daily Codex users. It checks local session and SQLite WAL metadata before debugging, opening an issue, or asking for help.
 
-If you are looking for a Codex CLI health check, a safe-to-share Codex local report, or a quick way to inspect session and SQLite WAL metadata, start here.
-
-By default, it performs local file metadata checks only. It does **not** read credentials, token files, cookies, SQLite contents, or session transcript contents.
-
-`codex-healthkit` is not a daemon, dashboard, live monitor, or session recorder. It does not require a background service or web UI, and it does not watch or record Codex sessions. It creates an on-demand, metadata-only CLI report that you can review before sharing.
-
-Not affiliated with OpenAI.
+By default, it does **not** execute `codex` or read credentials, token files, cookies, SQLite contents, or session transcript contents. It is not a daemon, dashboard, live monitor, or session recorder, and it does not require a background service or web UI. Not affiliated with OpenAI.
 
 ## 30-Second Quick Start
 
@@ -24,7 +18,7 @@ Default mode needs only Bash and standard Unix tools. It does not execute
 `codex`.
 
 ```bash
-git clone https://github.com/Ishikawa-Hidekazu/codex-healthkit.git
+git clone --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git
 cd codex-healthkit
 ./bin/codex-healthkit check
 ```
@@ -35,8 +29,8 @@ install a daemon, modify Codex state, or upload the report.
 ## What You Get
 
 <picture>
-  <source media="(max-width: 600px)" srcset="assets/health-report-mobile.png">
-  <img src="assets/health-report-overview.png" alt="Synthetic codex-healthkit output showing a default metadata-only health report and an explicit before-and-after comparison without credentials, SQLite contents, transcript contents, or uploads.">
+  <source media="(max-width: 600px)" srcset="assets/source/health-report-mobile.svg">
+  <img src="assets/source/health-report-overview.svg" alt="Fixture-only codex-healthkit output showing a default metadata-only health report and an explicit before-and-after comparison without credentials, SQLite contents, transcript contents, or uploads.">
 </picture>
 
 [View the public-safe text sample](examples/report.redacted.md) ·

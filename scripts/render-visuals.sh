@@ -3,17 +3,22 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-if ! command -v magick >/dev/null 2>&1; then
-  printf 'ImageMagick 7 (magick command) is required to render repository visuals.\n' >&2
+if ! command -v resvg >/dev/null 2>&1; then
+  printf 'resvg 0.47 or newer is required to render repository visuals.\n' >&2
   exit 1
 fi
 
-magick -background none "$ROOT_DIR/assets/source/health-report-overview.svg" \
-  -depth 8 -strip "$ROOT_DIR/assets/health-report-overview.png"
-magick -background none "$ROOT_DIR/assets/source/health-report-mobile.svg" \
-  -depth 8 -strip "$ROOT_DIR/assets/health-report-mobile.png"
-magick -background none "$ROOT_DIR/assets/source/social-preview.svg" \
-  -depth 8 -strip "$ROOT_DIR/assets/social-preview.png"
+if ! command -v magick >/dev/null 2>&1; then
+  printf 'ImageMagick 7 (magick command) is required to verify repository visuals.\n' >&2
+  exit 1
+fi
+
+resvg "$ROOT_DIR/assets/source/health-report-overview.svg" \
+  "$ROOT_DIR/assets/health-report-overview.png"
+resvg "$ROOT_DIR/assets/source/health-report-mobile.svg" \
+  "$ROOT_DIR/assets/health-report-mobile.png"
+resvg "$ROOT_DIR/assets/source/social-preview.svg" \
+  "$ROOT_DIR/assets/social-preview.png"
 
 check_image() {
   local file="$1"

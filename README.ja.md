@@ -8,22 +8,16 @@
 
 [English](README.md)
 
-`codex-healthkit` は、Codexを毎日使う人が、自分のローカル状態を安全に確認し、必要に応じて共有できるレポートを作るための小さなCLIです。
+`codex-healthkit` は、Codexを日常的に使う人向けの、必要な時だけ実行するCLI health reportです。debug、issue作成、相談の前に、local sessionとSQLite WALのmetadataを確認できます。
 
-Codex CLI health check、Codexのローカル環境点検、sessionやSQLite WALのmetadata確認、相談前に共有しやすいsafe-to-share reportが必要な時の入口として使えます。
-
-デフォルトではローカルファイルのメタデータだけを確認します。認証情報、token、cookie、SQLiteの中身、session transcriptの中身は読みません。
-
-`codex-healthkit` は、daemon、dashboard、常駐監視、session recorderではありません。background serviceやWeb UIは不要で、Codex sessionを監視・記録しません。必要な時にだけ、共有前に自分で確認できるmetadata-onlyのCLI reportを作ります。
-
-OpenAI公式のプロジェクトではありません。
+デフォルトでは`codex`を実行せず、認証情報、token、cookie、SQLite本文、session transcript本文を読みません。daemon、dashboard、常駐監視、session recorderではなく、background serviceやWeb UIも不要です。OpenAI公式のプロジェクトではありません。
 
 ## 30秒で試す
 
 default modeに必要なのはBashと標準的なUnix toolsだけです。`codex`は実行しません。
 
 ```bash
-git clone https://github.com/Ishikawa-Hidekazu/codex-healthkit.git
+git clone --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git
 cd codex-healthkit
 ./bin/codex-healthkit check
 ```
@@ -34,8 +28,8 @@ reportのuploadは行いません。
 ## 何が出るか
 
 <picture>
-  <source media="(max-width: 600px)" srcset="assets/health-report-mobile.png">
-  <img src="assets/health-report-overview.png" alt="fixtureだけで作ったcodex-healthkitの通常health reportと明示的なbefore/after比較。credential、SQLite本文、transcript本文を読まず、uploadしないことを示しています。">
+  <source media="(max-width: 600px)" srcset="assets/source/health-report-mobile.svg">
+  <img src="assets/source/health-report-overview.svg" alt="fixtureだけで作ったcodex-healthkitの通常health reportと明示的なbefore/after比較。credential、SQLite本文、transcript本文を読まず、uploadしないことを示しています。">
 </picture>
 
 [public-safeなtext sample](examples/report.redacted.md) ·
