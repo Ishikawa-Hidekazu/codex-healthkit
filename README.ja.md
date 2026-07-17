@@ -57,9 +57,15 @@ Codexを日常的に使っていると、次のような確認が必要になる
 
 `codex-healthkit` は、この範囲に絞った点検ツールです。利用量ダッシュボード、アカウント切り替え、クリーンアップ、transcript解析ツールではありません。
 
+## 実運用例
+
+[Codex CLI更新前後の実運用ログ](https://taupe.site/entry/codex-cli-0-143-0-update-health-check/)では、更新前後に`codex-healthkit`を使い、明示的な前回report比較と、別途opt-inで実行するofficial doctor summaryを確認しています。
+
 ## ステータス
 
 source-only alphaです。最新のtag付きreleaseは `v0.1.0-alpha.1` です。
+
+次のrelease candidateは`v0.1.0-alpha.2`です。release gateが完了するまでtagは作成しません。
 
 最初のtag付きalphaは、意図的に狭く、読み取り専用にしています。
 `main` branchにはtag公開後にreviewされた改善が含まれる場合があります。公開済みsource revisionを

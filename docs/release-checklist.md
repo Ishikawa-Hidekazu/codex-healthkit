@@ -18,8 +18,8 @@ Completed for the initial public alpha:
 ## Local Checks
 
 ```bash
-bash -n bin/codex-healthkit tests/run.sh tests/fixtures/fake-bin/codex
-shellcheck bin/codex-healthkit tests/run.sh tests/fixtures/fake-bin/codex
+bash -n bin/codex-healthkit scripts/render-visuals.sh tests/run.sh tests/fixtures/fake-bin/codex
+shellcheck bin/codex-healthkit scripts/render-visuals.sh tests/run.sh tests/fixtures/fake-bin/codex
 tests/run.sh
 git diff --check
 ```
@@ -74,3 +74,19 @@ Each item above needs a separate safety and release review.
 - [x] Ran Linux checks in GitHub Actions and an Ubuntu 24.04 Docker container.
 - [x] Confirmed public commit messages are in English.
 - [x] Reviewed release notes before creating the GitHub release.
+
+### `v0.1.0-alpha.2` release candidate - 2026-07-17
+
+- [x] Confirm `v0.1.0-alpha.1..main` contains the intended six commits before this release PR.
+- [x] Confirm package version `0.1.0-alpha.2` matches tag candidate `v0.1.0-alpha.2`.
+- [x] Review explicit previous-report comparison and optional doctor boundaries.
+- [x] Confirm English and Japanese README files match current behavior.
+- [x] Confirm fixture-only README visuals and Social Preview contain no real local state.
+- [x] Review the Social Preview at 1280 x 640 and a reduced card size.
+- [x] Run local macOS checks, gitleaks, and same-environment render reproducibility QA.
+- [ ] Confirm GitHub Linux/macOS checks and fresh-clone QA for the release candidate commit.
+- [x] Review `docs/releases/v0.1.0-alpha.2.md` before merge.
+- [ ] After central QA, merge through protected `main`, then create the tag and prerelease separately.
+- [ ] After publishing, update README latest-tag wording from alpha.1 to alpha.2.
+
+No PyPI package, Homebrew formula, binary, or manually attached artifact is part of this candidate.
