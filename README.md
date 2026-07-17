@@ -58,9 +58,15 @@ Heavy Codex users often need to answer simple operational questions:
 
 `codex-healthkit` focuses on that narrow problem. It is not a usage dashboard, account switcher, cleanup tool, or transcript parser.
 
+## Real-World Use
+
+[This practical update log](https://taupe.site/entry/codex-cli-0-143-0-update-health-check/) shows `codex-healthkit` used before and after a Codex CLI update. It covers an explicit previous-report comparison and the separate, opt-in official doctor summary. The article is in Japanese.
+
 ## Status
 
 Source-only alpha. Latest tagged release: `v0.1.0-alpha.1`.
+
+The next release candidate is `v0.1.0-alpha.2`; its tag does not exist until the release gate is complete.
 
 The first tagged alpha is intentionally narrow and read-only.
 The `main` branch may contain reviewed improvements added after that tag. For
