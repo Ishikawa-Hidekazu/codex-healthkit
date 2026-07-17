@@ -84,7 +84,7 @@ Each item above needs a separate safety and release review.
 - [x] Confirm fixture-only README visuals and Social Preview contain no real local state.
 - [x] Review the Social Preview at 1280 x 640 and a reduced card size.
 - [x] Run local macOS checks, gitleaks, and same-environment render reproducibility QA.
-- [ ] Confirm GitHub Linux/macOS checks and fresh-clone QA for the release candidate commit.
+- [x] Confirm GitHub Linux/macOS checks and fresh-clone QA for the release candidate commit.
 - [x] Review `docs/releases/v0.1.0-alpha.2.md` before merge.
 - [ ] After central QA, merge through protected `main`, then create the tag and prerelease separately.
 - [ ] After publishing, update README latest-tag wording from alpha.1 to alpha.2.
