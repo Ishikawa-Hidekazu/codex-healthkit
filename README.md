@@ -373,10 +373,10 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 Near-term:
 
-- continue daily use of the source-only alpha
+- continue daily use of the source-only release
 - more fixture-based tests
 - clearer report examples
-- decide the next alpha only after practical improvements accumulate
+- decide the next release only after practical improvements accumulate
 
 Out of scope until a new safety review:
 

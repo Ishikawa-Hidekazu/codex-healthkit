@@ -17,5 +17,5 @@
 
   <text x="72" y="544" fill="#c2cdd4" font-family="Arial, sans-serif" font-size="28" font-weight="600">On demand • Read only • No daemon • No dashboard</text>
   <rect x="959" y="510" width="249" height="48" rx="6" fill="#173126" stroke="#67d391" stroke-width="2"/>
-  <text x="1083" y="543" fill="#7ce2a2" text-anchor="middle" font-family="Arial, sans-serif" font-size="23" font-weight="700">SOURCE-ONLY ALPHA</text>
+  <text x="1083" y="543" fill="#7ce2a2" text-anchor="middle" font-family="Arial, sans-serif" font-size="23" font-weight="700">SOURCE-ONLY CLI</text>
 </svg>
