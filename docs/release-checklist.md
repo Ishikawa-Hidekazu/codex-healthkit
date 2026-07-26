@@ -71,7 +71,7 @@ Each item above needs a separate safety and release review.
 - [x] Confirmed `README.md` and `README.ja.md` match current behavior.
 - [x] Confirmed `SECURITY.md` reporting path is current.
 - [x] Ran macOS checks.
-- [ ] Ran Linux checks in GitHub Actions.
+- [x] Ran Linux checks in GitHub Actions.
 - [x] Confirmed the release-candidate commit is in English.
 - [ ] Reviewed the normal-release notes before creating the tag and GitHub Release.
 - [x] Verified a fresh branch clone, check, local symlink install, and uninstall.
