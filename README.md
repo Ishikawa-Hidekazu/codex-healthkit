@@ -67,11 +67,10 @@ Heavy Codex users often need to answer simple operational questions:
 
 ## Status
 
-Source-only alpha. Latest tagged release: `v0.1.0-alpha.1`.
+Source-only CLI. Current source version: `v0.2.0`.
 
-The first tagged alpha is intentionally narrow and read-only.
-The `main` branch may contain reviewed improvements added after that tag. For
-the published source revision, clone with `--branch v0.1.0-alpha.1 --depth 1`.
+The first normal release remains intentionally narrow and read-only.
+For the published source revision, clone with `--branch v0.2.0 --depth 1`.
 
 Tested on macOS and Linux. Windows is not supported by this Bash implementation.
 
@@ -119,9 +118,11 @@ Omit `--json` on the second command when you want a Markdown comparison table.
 
 ## Optional Local Install
 
-If you want `codex-healthkit` on your local `PATH` before package distribution exists:
+If you want `codex-healthkit` on your local `PATH`:
 
 ```bash
+git clone --branch v0.2.0 --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git
+cd codex-healthkit
 mkdir -p ~/.local/bin
 ln -sf "$PWD/bin/codex-healthkit" ~/.local/bin/codex-healthkit
 codex-healthkit check
