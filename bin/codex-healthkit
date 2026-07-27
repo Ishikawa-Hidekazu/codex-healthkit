@@ -5,6 +5,7 @@ VERSION="0.2.0"
 FORMAT="markdown"
 WITH_CODEX_VERSION=0
 WITH_CODEX_DOCTOR=0
+WITH_RUNTIME=0
 COMPARE_FILE=""
 COMPARE_REQUESTED=0
 COMPARE_LOADED=0
@@ -16,7 +17,7 @@ usage() {
 codex-healthkit - local metadata health checks for daily Codex operators
 
 Usage:
-  codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--with-codex-version] [--with-codex-doctor]
+  codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--with-codex-version] [--with-codex-doctor] [--with-runtime]
   codex-healthkit --version
   codex-healthkit --help
 
@@ -33,6 +34,10 @@ Optional:
      redacted summary fields (status, ok/warn/fail counts, and a note). Raw
      doctor output is not included. Codex CLI may perform provider reachability
      checks through the existing Codex configuration when this option is enabled.
+  --with-runtime collects macOS memory pressure, swap usage, and bounded process
+     metadata (PID, PPID, RSS, uptime, and normalized process category). It does
+     not read command arguments, environment variables, or open files. Other
+     operating systems report runtime diagnostics as unsupported.
 USAGE
 }
 
@@ -220,6 +225,224 @@ direction_for_delta() {
   fi
 }
 
+elapsed_seconds() {
+  local value="$1" days=0 hours=0 minutes=0 seconds=0 rest
+  case "$value" in
+    *-*)
+      days="${value%%-*}"
+      rest="${value#*-}"
+      ;;
+    *) rest="$value" ;;
+  esac
+
+  case "$rest" in
+    *:*:*)
+      hours="${rest%%:*}"
+      rest="${rest#*:}"
+      minutes="${rest%%:*}"
+      seconds="${rest##*:}"
+      ;;
+    *:*)
+      minutes="${rest%%:*}"
+      seconds="${rest##*:}"
+      ;;
+    *) return 1 ;;
+  esac
+
+  case "$days:$hours:$minutes:$seconds" in
+    *[!0-9:]*) return 1 ;;
+  esac
+  printf '%d' "$((10#$days * 86400 + 10#$hours * 3600 + 10#$minutes * 60 + 10#$seconds))"
+}
+
+runtime_category() {
+  local executable="${1##*/}"
+  case "$executable" in
+    *Codex*Renderer*) printf 'codex_renderer' ;;
+    SkyComputerUseClient) printf 'computer_use_client' ;;
+    SkyComputerUseService) printf 'computer_use_service' ;;
+    playwright-mcp|playwright-mcp-*) printf 'playwright_worker' ;;
+    *) return 1 ;;
+  esac
+}
+
+runtime_status_for_pressure() {
+  local swap_mib="$1" free_percent="$2"
+  if [ "$swap_mib" -ge 8192 ] || { [ "$free_percent" -ge 0 ] && [ "$free_percent" -le 10 ]; }; then
+    printf 'watch'
+  elif [ "$swap_mib" -ge 4096 ] || { [ "$free_percent" -ge 0 ] && [ "$free_percent" -le 20 ]; }; then
+    printf 'observe'
+  else
+    printf 'ok'
+  fi
+}
+
+parse_swap_mib() {
+  awk '
+    {
+      for (i = 1; i <= NF; i++) {
+        if ($i == "used" && $(i + 1) == "=") {
+          value = $(i + 2)
+          unit = substr(value, length(value), 1)
+          sub(/[MGT]$/, "", value)
+          if (unit == "G") value *= 1024
+          if (unit == "T") value *= 1048576
+          printf "%d", value + 0
+          exit
+        }
+      }
+    }
+  '
+}
+
+process_group_json() {
+  local category="$1" first=1 parent_state
+  printf '{"count":%s,"rss_bytes":%s,"orphan_candidate_count":%s,"ppid_init_candidate_count":%s,"parent_missing_candidate_count":%s,"long_running_count":%s,"residual_candidate_count":%s,"items":[' \
+    "$(runtime_group_value "$category" 2)" \
+    "$(( $(runtime_group_value "$category" 3) * 1024 ))" \
+    "$(runtime_group_value "$category" 4)" \
+    "$(runtime_group_value "$category" 6)" \
+    "$(runtime_group_value "$category" 7)" \
+    "$(runtime_group_value "$category" 5)" \
+    "$(runtime_group_value "$category" 8)"
+  while IFS='|' read -r row_category pid ppid rss_kb uptime started parent_present orphan long_running ppid_init parent_missing residual; do
+    [ "$row_category" = "$category" ] || continue
+    if [ "$first" -eq 0 ]; then printf ','; fi
+    first=0
+    if [ "$ppid_init" -eq 1 ]; then parent_state="init"; elif [ "$parent_missing" -eq 1 ]; then parent_state="missing"; else parent_state="present"; fi
+    printf '{"pid":%s,"ppid":%s,"rss_bytes":%s,"uptime_seconds":%s,"started_at_epoch":%s,"parent_present":%s,"parent_state":%s,"orphan_candidate":%s,"long_running":%s,"residual_candidate":%s}' \
+      "$pid" "$ppid" "$((rss_kb * 1024))" "$uptime" "$started" \
+      "$(bool_json "$parent_present")" "$(json_string "$parent_state")" "$(bool_json "$orphan")" "$(bool_json "$long_running")" "$(bool_json "$residual")"
+  done <"$RUNTIME_TARGETS_FILE"
+  printf ']}'
+}
+
+runtime_group_value() {
+  local category="$1" field="$2"
+  awk -F '|' -v category="$category" -v field="$field" '
+    $1 == category {
+      count++
+      rss += $4
+      orphan += $8
+      long_running += $9
+      ppid_init += $10
+      parent_missing += $11
+      residual += $12
+    }
+    END {
+      if (field == 2) print count + 0
+      else if (field == 3) print rss + 0
+      else if (field == 4) print orphan + 0
+      else if (field == 5) print long_running + 0
+      else if (field == 6) print ppid_init + 0
+      else if (field == 7) print parent_missing + 0
+      else if (field == 8) print residual + 0
+    }
+  ' "$RUNTIME_TARGETS_FILE"
+}
+
+collect_runtime() {
+  local os_name ps_source pressure_source swap_source now_epoch
+  RUNTIME_REQUESTED="$WITH_RUNTIME"
+  RUNTIME_SUPPORTED=0
+  RUNTIME_STATUS="skipped"
+  RUNTIME_NOTE="not requested; pass --with-runtime for bounded macOS runtime metadata"
+  RUNTIME_MEMORY_FREE_PERCENT=-1
+  RUNTIME_SWAP_USED_MIB=0
+  : >"$RUNTIME_TARGETS_FILE"
+
+  [ "$WITH_RUNTIME" -eq 1 ] || return 0
+  os_name="${CODEX_HEALTHKIT_TEST_OS:-$(uname -s 2>/dev/null || printf 'unknown')}"
+  RUNTIME_OS="$os_name"
+  if [ "$os_name" != "Darwin" ]; then
+    RUNTIME_STATUS="unsupported"
+    RUNTIME_NOTE="runtime diagnostics are currently supported on macOS only; existing checks continued"
+    return
+  fi
+
+  RUNTIME_SUPPORTED=1
+  RUNTIME_STATUS="ok"
+  RUNTIME_NOTE="bounded macOS runtime metadata collected; process arguments, environment variables, and open files were not read"
+
+  if [ -n "${CODEX_HEALTHKIT_TEST_RUNTIME_DIR:-}" ]; then
+    pressure_source="$CODEX_HEALTHKIT_TEST_RUNTIME_DIR/memory_pressure.txt"
+    swap_source="$CODEX_HEALTHKIT_TEST_RUNTIME_DIR/swapusage.txt"
+    ps_source="$CODEX_HEALTHKIT_TEST_RUNTIME_DIR/ps.txt"
+  else
+    pressure_source="$RUNTIME_PRESSURE_FILE"
+    swap_source="$RUNTIME_SWAP_FILE"
+    ps_source="$RUNTIME_PS_FILE"
+    memory_pressure -Q >"$pressure_source" 2>/dev/null || true
+    sysctl -n vm.swapusage >"$swap_source" 2>/dev/null || true
+    ps -axo pid=,ppid=,rss=,etime=,comm= >"$ps_source" 2>/dev/null || true
+  fi
+
+  RUNTIME_MEMORY_FREE_PERCENT="$(awk '/System-wide memory free percentage:/ {gsub(/%/, "", $NF); print $NF; exit}' "$pressure_source" 2>/dev/null || true)"
+  case "$RUNTIME_MEMORY_FREE_PERCENT" in ''|*[!0-9]*) RUNTIME_MEMORY_FREE_PERCENT=-1 ;; esac
+  RUNTIME_SWAP_USED_MIB="$(parse_swap_mib <"$swap_source" 2>/dev/null || true)"
+  case "$RUNTIME_SWAP_USED_MIB" in ''|*[!0-9]*) RUNTIME_SWAP_USED_MIB=0 ;; esac
+
+  now_epoch="${CODEX_HEALTHKIT_TEST_EPOCH:-$(date +%s)}"
+  awk '{print $1}' "$ps_source" 2>/dev/null >"$RUNTIME_PIDS_FILE" || true
+  while read -r pid ppid rss_kb elapsed executable; do
+    local category uptime started parent_present=0 orphan=0 long_running=0 ppid_init=0 parent_missing=0 residual=0
+    case "$pid:$ppid:$rss_kb" in *[!0-9:]*) continue ;; esac
+    category="$(runtime_category "$executable" 2>/dev/null || true)"
+    [ -n "$category" ] || continue
+    uptime="$(elapsed_seconds "$elapsed" 2>/dev/null || true)"
+    case "$uptime" in ''|*[!0-9]*) continue ;; esac
+    started=$(( (now_epoch - uptime) / 60 * 60 ))
+    if grep -qx "$ppid" "$RUNTIME_PIDS_FILE" 2>/dev/null; then parent_present=1; fi
+    if [ "$ppid" -le 1 ]; then ppid_init=1; orphan=1
+    elif [ "$parent_present" -eq 0 ]; then parent_missing=1; orphan=1
+    fi
+    if [ "$uptime" -ge 21600 ]; then long_running=1; fi
+    if [ "$orphan" -eq 1 ] && [ "$long_running" -eq 1 ]; then residual=1; fi
+    printf '%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+      "$category" "$pid" "$ppid" "$rss_kb" "$uptime" "$started" "$parent_present" "$orphan" "$long_running" "$ppid_init" "$parent_missing" "$residual" \
+      >>"$RUNTIME_TARGETS_FILE"
+  done <"$ps_source"
+
+  if [ ! -s "$pressure_source" ] && [ ! -s "$swap_source" ]; then
+    RUNTIME_STATUS="unavailable"
+    RUNTIME_NOTE="macOS runtime commands returned no memory or swap metadata; existing checks continued"
+  else
+    RUNTIME_STATUS="$(runtime_status_for_pressure "$RUNTIME_SWAP_USED_MIB" "$RUNTIME_MEMORY_FREE_PERCENT")"
+  fi
+}
+
+runtime_json() {
+  cat <<JSON
+{
+    "requested": $(bool_json "$RUNTIME_REQUESTED"),
+    "supported": $(bool_json "$RUNTIME_SUPPORTED"),
+    "os": $(json_string "$RUNTIME_OS"),
+    "status": $(json_string "$RUNTIME_STATUS"),
+    "note": $(json_string "$RUNTIME_NOTE"),
+    "memory": {
+      "free_percent": $RUNTIME_MEMORY_FREE_PERCENT,
+      "swap_used_mib": $RUNTIME_SWAP_USED_MIB,
+      "pressure_status": $(json_string "$RUNTIME_STATUS")
+    },
+    "processes": {
+      "codex_renderer": $(process_group_json codex_renderer),
+      "computer_use_client": $(process_group_json computer_use_client),
+      "computer_use_service": $(process_group_json computer_use_service),
+      "playwright_worker": $(process_group_json playwright_worker)
+    },
+    "thresholds": {
+      "swap_observe_mib": 4096,
+      "swap_watch_mib": 8192,
+      "memory_free_observe_percent": 20,
+      "memory_free_watch_percent": 10,
+      "long_running_seconds": 21600,
+      "renderer_churn_events": 4,
+      "worker_growth_count": 10
+    }
+  }
+JSON
+}
+
 previous_number() {
   local filter="$1"
   jq -er "$filter // 0 | if type == \"number\" then . else 0 end" "$COMPARE_FILE" 2>/dev/null || printf '0'
@@ -290,10 +513,60 @@ JSON
         "current_bytes": $QUARANTINE_BYTES,
         "delta_bytes": $DELTA_QUARANTINE_BYTES,
         "direction": $(json_string "$(direction_for_delta "$DELTA_QUARANTINE_BYTES")")
+      },
+      "runtime": {
+        "available": $(bool_json "$RUNTIME_COMPARE_AVAILABLE"),
+        "note": $(json_string "$RUNTIME_COMPARE_NOTE"),
+        "codex_renderer": {
+          "started_count": $RUNTIME_RENDERER_STARTED,
+          "exited_count": $RUNTIME_RENDERER_EXITED,
+          "churn_candidate": $(bool_json "$RUNTIME_RENDERER_CHURN")
+        },
+        "computer_use_client_count": {
+          "previous_count": $PREV_COMPUTER_USE_CLIENT_COUNT,
+          "current_count": $CURRENT_COMPUTER_USE_CLIENT_COUNT,
+          "delta_count": $DELTA_COMPUTER_USE_CLIENT_COUNT,
+          "growth_candidate": $(bool_json "$COMPUTER_USE_CLIENT_GROWTH")
+        },
+        "playwright_worker_count": {
+          "previous_count": $PREV_PLAYWRIGHT_WORKER_COUNT,
+          "current_count": $CURRENT_PLAYWRIGHT_WORKER_COUNT,
+          "delta_count": $DELTA_PLAYWRIGHT_WORKER_COUNT,
+          "growth_candidate": $(bool_json "$PLAYWRIGHT_WORKER_GROWTH")
+        }
       }
     }
   }
 JSON
+}
+
+load_runtime_comparison() {
+  local previous_supported current_supported events
+  RUNTIME_COMPARE_AVAILABLE=0
+  RUNTIME_COMPARE_NOTE="runtime comparison unavailable; collect both reports with --with-runtime on macOS"
+  previous_supported="$(jq -r '.runtime.supported // false' "$COMPARE_FILE" 2>/dev/null || printf 'false')"
+  current_supported="$(bool_json "$RUNTIME_SUPPORTED")"
+  if [ "$previous_supported" != "true" ] || [ "$current_supported" != "true" ]; then
+    return 0
+  fi
+
+  jq -r '.runtime.processes.codex_renderer.items[]? | "\(.pid):\(.started_at_epoch)"' "$COMPARE_FILE" 2>/dev/null | sort -u >"$RUNTIME_PREVIOUS_IDS_FILE"
+  awk -F '|' '$1 == "codex_renderer" {print $2 ":" $6}' "$RUNTIME_TARGETS_FILE" | sort -u >"$RUNTIME_CURRENT_IDS_FILE"
+  RUNTIME_RENDERER_STARTED="$(comm -13 "$RUNTIME_PREVIOUS_IDS_FILE" "$RUNTIME_CURRENT_IDS_FILE" | wc -l | tr -d '[:space:]')"
+  RUNTIME_RENDERER_EXITED="$(comm -23 "$RUNTIME_PREVIOUS_IDS_FILE" "$RUNTIME_CURRENT_IDS_FILE" | wc -l | tr -d '[:space:]')"
+  events=$((RUNTIME_RENDERER_STARTED + RUNTIME_RENDERER_EXITED))
+  if [ "$events" -ge 4 ]; then RUNTIME_RENDERER_CHURN=1; fi
+
+  PREV_COMPUTER_USE_CLIENT_COUNT="$(previous_number '.runtime.processes.computer_use_client.count')"
+  PREV_PLAYWRIGHT_WORKER_COUNT="$(previous_number '.runtime.processes.playwright_worker.count')"
+  CURRENT_COMPUTER_USE_CLIENT_COUNT="$(runtime_group_value computer_use_client 2)"
+  CURRENT_PLAYWRIGHT_WORKER_COUNT="$(runtime_group_value playwright_worker 2)"
+  DELTA_COMPUTER_USE_CLIENT_COUNT=$((CURRENT_COMPUTER_USE_CLIENT_COUNT - PREV_COMPUTER_USE_CLIENT_COUNT))
+  DELTA_PLAYWRIGHT_WORKER_COUNT=$((CURRENT_PLAYWRIGHT_WORKER_COUNT - PREV_PLAYWRIGHT_WORKER_COUNT))
+  if [ "$DELTA_COMPUTER_USE_CLIENT_COUNT" -ge 10 ]; then COMPUTER_USE_CLIENT_GROWTH=1; fi
+  if [ "$DELTA_PLAYWRIGHT_WORKER_COUNT" -ge 10 ]; then PLAYWRIGHT_WORKER_GROWTH=1; fi
+  RUNTIME_COMPARE_AVAILABLE=1
+  RUNTIME_COMPARE_NOTE="PID and estimated start-time metadata compared; churn and worker growth are candidates for review, not proof of a leak or orphan"
 }
 
 comparison_markdown() {
@@ -316,6 +589,59 @@ comparison_markdown() {
 | active sessions | $(human_bytes_value "$PREV_SESSIONS_BYTES") / $PREV_SESSIONS_COUNT | $(human_bytes_value "$SESSIONS_BYTES") / $SESSIONS_COUNT | $(signed_human_delta_bytes "$DELTA_SESSIONS_BYTES") / $(signed_delta_count "$DELTA_SESSIONS_COUNT") | file count only; transcript contents not read |
 | archived sessions | $(human_bytes_value "$PREV_ARCHIVED_BYTES") / $PREV_ARCHIVED_COUNT | $(human_bytes_value "$ARCHIVED_BYTES") / $ARCHIVED_COUNT | $(signed_human_delta_bytes "$DELTA_ARCHIVED_BYTES") / $(signed_delta_count "$DELTA_ARCHIVED_COUNT") | normal growth can be expected; review before deleting |
 | quarantine | $(human_bytes_value "$PREV_QUARANTINE_BYTES") | $(human_bytes_value "$QUARANTINE_BYTES") | $(signed_human_delta_bytes "$DELTA_QUARANTINE_BYTES") | metadata only |
+MARKDOWN
+
+  if [ "$RUNTIME_COMPARE_AVAILABLE" -eq 1 ]; then
+    cat <<MARKDOWN
+
+### Runtime Comparison
+
+- renderer started/exited candidates: \`$RUNTIME_RENDERER_STARTED / $RUNTIME_RENDERER_EXITED\`
+- renderer churn candidate: \`$(if [ "$RUNTIME_RENDERER_CHURN" -eq 1 ]; then printf 'yes'; else printf 'no'; fi)\`
+- computer-use client count delta: \`$(signed_delta_count "$DELTA_COMPUTER_USE_CLIENT_COUNT")\`
+- computer-use client growth candidate: \`$(if [ "$COMPUTER_USE_CLIENT_GROWTH" -eq 1 ]; then printf 'yes'; else printf 'no'; fi)\`
+- playwright worker count delta: \`$(signed_delta_count "$DELTA_PLAYWRIGHT_WORKER_COUNT")\`
+- playwright worker growth candidate: \`$(if [ "$PLAYWRIGHT_WORKER_GROWTH" -eq 1 ]; then printf 'yes'; else printf 'no'; fi)\`
+- note: $(markdown_inline "$RUNTIME_COMPARE_NOTE")
+MARKDOWN
+  fi
+}
+
+runtime_markdown() {
+  local category label count rss long_running
+  cat <<MARKDOWN
+
+## Optional macOS Runtime Metadata
+
+- requested: \`$(if [ "$RUNTIME_REQUESTED" -eq 1 ]; then printf 'yes'; else printf 'no'; fi)\`
+- supported: \`$(if [ "$RUNTIME_SUPPORTED" -eq 1 ]; then printf 'yes'; else printf 'no'; fi)\`
+- os: \`$(markdown_inline "$RUNTIME_OS")\`
+- status: \`$(markdown_inline "$RUNTIME_STATUS")\`
+- memory free: \`$(if [ "$RUNTIME_MEMORY_FREE_PERCENT" -ge 0 ]; then printf '%s%%' "$RUNTIME_MEMORY_FREE_PERCENT"; else printf 'unavailable'; fi)\`
+- swap used: \`${RUNTIME_SWAP_USED_MIB} MiB\`
+- note: $(markdown_inline "$RUNTIME_NOTE")
+
+| process category | count | RSS | PPID 0/1 | parent missing | long-running | residual candidate |
+|---|---:|---:|---:|---:|---:|---:|
+MARKDOWN
+  for category in codex_renderer computer_use_client computer_use_service playwright_worker; do
+    case "$category" in
+      codex_renderer) label="Codex Renderer" ;;
+      computer_use_client) label="Computer Use client" ;;
+      computer_use_service) label="Computer Use service" ;;
+      playwright_worker) label="Playwright worker" ;;
+    esac
+    count="$(runtime_group_value "$category" 2)"
+    rss=$(( $(runtime_group_value "$category" 3) * 1024 ))
+    long_running="$(runtime_group_value "$category" 5)"
+    printf '| %s | %s | %s | %s | %s | %s | %s |\n' \
+      "$label" "$count" "$(human_bytes_value "$rss")" \
+      "$(runtime_group_value "$category" 6)" "$(runtime_group_value "$category" 7)" \
+      "$long_running" "$(runtime_group_value "$category" 8)"
+  done
+  cat <<MARKDOWN
+
+An orphan candidate means PPID 0/1 or a parent PID absent from the same snapshot. A long-running or high-count process is not automatically a leak. Renderer churn is evaluated only when two explicit runtime reports are compared. No process is stopped or cleaned up.
 MARKDOWN
 }
 
@@ -361,6 +687,8 @@ load_previous_report() {
   DELTA_ARCHIVED_BYTES=$((ARCHIVED_BYTES - PREV_ARCHIVED_BYTES))
   DELTA_ARCHIVED_COUNT=$((ARCHIVED_COUNT - PREV_ARCHIVED_COUNT))
   DELTA_QUARANTINE_BYTES=$((QUARANTINE_BYTES - PREV_QUARANTINE_BYTES))
+
+  load_runtime_comparison
 
   COMPARE_LOADED=1
   COMPARE_NOTE="explicit previous report loaded; comparison uses metadata already emitted by codex-healthkit and is informational"
@@ -456,6 +784,9 @@ while [ "$#" -gt 0 ]; do
     --with-codex-doctor)
       WITH_CODEX_DOCTOR=1
       ;;
+    --with-runtime)
+      WITH_RUNTIME=1
+      ;;
     --compare)
       shift
       [ "$#" -gt 0 ] || die "--compare requires a previous report path"
@@ -485,6 +816,14 @@ done
 [ "$COMMAND" = "check" ] || die "unsupported command: $COMMAND"
 
 GENERATED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+RUNTIME_PS_FILE="$(mktemp)"
+RUNTIME_PRESSURE_FILE="$(mktemp)"
+RUNTIME_SWAP_FILE="$(mktemp)"
+RUNTIME_PIDS_FILE="$(mktemp)"
+RUNTIME_TARGETS_FILE="$(mktemp)"
+RUNTIME_PREVIOUS_IDS_FILE="$(mktemp)"
+RUNTIME_CURRENT_IDS_FILE="$(mktemp)"
+trap 'rm -f "$RUNTIME_PS_FILE" "$RUNTIME_PRESSURE_FILE" "$RUNTIME_SWAP_FILE" "$RUNTIME_PIDS_FILE" "$RUNTIME_TARGETS_FILE" "$RUNTIME_PREVIOUS_IDS_FILE" "$RUNTIME_CURRENT_IDS_FILE"' EXIT
 CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
 SQLITE_HOME_DIR="$(resolve_sqlite_home)"
 
@@ -540,6 +879,19 @@ DOCTOR_WARN=0
 DOCTOR_FAIL=0
 run_codex_doctor
 
+RUNTIME_REQUESTED=0
+RUNTIME_SUPPORTED=0
+RUNTIME_OS="not requested"
+RUNTIME_STATUS="skipped"
+RUNTIME_NOTE=""
+RUNTIME_MEMORY_FREE_PERCENT=-1
+RUNTIME_SWAP_USED_MIB=0
+collect_runtime
+
+if [ "$RUNTIME_STATUS" = "watch" ] && [ "$OVERALL_STATUS" = "ok" ]; then
+  OVERALL_STATUS="watch"
+fi
+
 if [ "$DOCTOR_RAN" = "1" ]; then
   if [ "$DOCTOR_FAIL" -gt 0 ]; then
     OVERALL_STATUS="fail"
@@ -563,6 +915,19 @@ DELTA_SESSIONS_COUNT=0
 DELTA_ARCHIVED_BYTES=0
 DELTA_ARCHIVED_COUNT=0
 DELTA_QUARANTINE_BYTES=0
+RUNTIME_COMPARE_AVAILABLE=0
+RUNTIME_COMPARE_NOTE="runtime comparison unavailable; collect both reports with --with-runtime on macOS"
+RUNTIME_RENDERER_STARTED=0
+RUNTIME_RENDERER_EXITED=0
+RUNTIME_RENDERER_CHURN=0
+COMPUTER_USE_CLIENT_GROWTH=0
+PLAYWRIGHT_WORKER_GROWTH=0
+PREV_COMPUTER_USE_CLIENT_COUNT=0
+PREV_PLAYWRIGHT_WORKER_COUNT=0
+CURRENT_COMPUTER_USE_CLIENT_COUNT="$(runtime_group_value computer_use_client 2)"
+CURRENT_PLAYWRIGHT_WORKER_COUNT="$(runtime_group_value playwright_worker 2)"
+DELTA_COMPUTER_USE_CLIENT_COUNT=0
+DELTA_PLAYWRIGHT_WORKER_COUNT=0
 load_previous_report
 
 if [ "$FORMAT" = "json" ]; then
@@ -614,6 +979,7 @@ if [ "$FORMAT" = "json" ]; then
     }
   },
   "comparison": $(comparison_json),
+  "runtime": $(runtime_json),
   "official_codex_doctor": {
     "requested": $(bool_json "$DOCTOR_REQUESTED"),
     "ran": $(bool_json "$DOCTOR_RAN"),
@@ -629,6 +995,9 @@ if [ "$FORMAT" = "json" ]; then
     "cookies_read": false,
     "sqlite_contents_read": false,
     "session_transcript_contents_read": false,
+    "process_arguments_read": false,
+    "process_environment_read": false,
+    "process_open_files_read": false,
     "healthkit_network_telemetry": false
   }
 }
@@ -667,6 +1036,8 @@ MARKDOWN
 
 comparison_markdown
 
+runtime_markdown
+
 cat <<MARKDOWN
 
 ## Official Codex Doctor
@@ -686,6 +1057,9 @@ When \`--with-codex-doctor\` is enabled, Codex CLI may perform provider reachabi
 - cookies read: \`no\`
 - SQLite contents read: \`no\`
 - session transcript contents read: \`no\`
+- process arguments read: \`no\`
+- process environment read: \`no\`
+- process open files read: \`no\`
 - healthkit telemetry/upload: \`no\`
 
 Not affiliated with OpenAI.

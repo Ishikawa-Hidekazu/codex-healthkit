@@ -55,6 +55,22 @@ mode as fully offline or never touching the network. This option does not read
 session transcript contents or SQLite contents, and it does not add cleanup,
 delete, or usage-dashboard behavior.
 
+## Optional macOS Runtime Metadata
+
+Command:
+
+```bash
+codex-healthkit check --with-runtime
+```
+
+This option may collect memory-free percentage, swap used, target process PID/PPID, RSS, elapsed uptime, an estimated minute-bucketed start time, parent-PID presence, normalized target categories, and aggregate counts.
+
+It must not collect or report command arguments, environment variables, open files, raw executable paths, parent command names, credentials, tokens, cookies, or browser state.
+
+Classification uses executable names only and discards the raw value after matching. Generic processes such as `node` are not attributed to Playwright by inspecting arguments. Runtime diagnostics are macOS-only; unsupported systems continue the existing check.
+
+PPID 0/1, an absent parent, long uptime, high count, and Renderer PID changes are candidates for review rather than definitive orphan, leak, or churn findings. Runtime mode never stops, kills, restarts, or cleans up processes.
+
 ## Optional Previous Report Comparison
 
 Command:
@@ -92,6 +108,7 @@ Safe report fields:
 - file sizes
 - file counts
 - redacted doctor status counts
+- bounded runtime PID/PPID/RSS/uptime metadata when explicitly requested
 
 Unsafe report fields:
 
@@ -102,6 +119,7 @@ Unsafe report fields:
 - file names
 - transcripts
 - account identifiers
+- process command arguments, environment variables, and open files
 
 ## Future Features That Need A New Review
 

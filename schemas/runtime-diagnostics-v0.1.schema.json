@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Ishikawa-Hidekazu/codex-healthkit/blob/main/schemas/runtime-diagnostics-v0.1.schema.json",
+  "title": "codex-healthkit runtime diagnostics v0.1",
+  "description": "Schema for the top-level runtime object emitted by codex-healthkit check --json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["requested", "supported", "os", "status", "note", "memory", "processes", "thresholds"],
+  "properties": {
+    "requested": {"type": "boolean"},
+    "supported": {"type": "boolean"},
+    "os": {"type": "string"},
+    "status": {"enum": ["skipped", "unsupported", "unavailable", "ok", "observe", "watch"]},
+    "note": {"type": "string"},
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["free_percent", "swap_used_mib", "pressure_status"],
+      "properties": {
+        "free_percent": {"type": "integer", "minimum": -1, "maximum": 100},
+        "swap_used_mib": {"type": "integer", "minimum": 0},
+        "pressure_status": {"enum": ["skipped", "unsupported", "unavailable", "ok", "observe", "watch"]}
+      }
+    },
+    "processes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codex_renderer", "computer_use_client", "computer_use_service", "playwright_worker"],
+      "properties": {
+        "codex_renderer": {"$ref": "#/$defs/processGroup"},
+        "computer_use_client": {"$ref": "#/$defs/processGroup"},
+        "computer_use_service": {"$ref": "#/$defs/processGroup"},
+        "playwright_worker": {"$ref": "#/$defs/processGroup"}
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["swap_observe_mib", "swap_watch_mib", "memory_free_observe_percent", "memory_free_watch_percent", "long_running_seconds", "renderer_churn_events", "worker_growth_count"],
+      "properties": {
+        "swap_observe_mib": {"const": 4096},
+        "swap_watch_mib": {"const": 8192},
+        "memory_free_observe_percent": {"const": 20},
+        "memory_free_watch_percent": {"const": 10},
+        "long_running_seconds": {"const": 21600},
+        "renderer_churn_events": {"const": 4},
+        "worker_growth_count": {"const": 10}
+      }
+    }
+  },
+  "$defs": {
+    "processGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "rss_bytes", "orphan_candidate_count", "ppid_init_candidate_count", "parent_missing_candidate_count", "long_running_count", "residual_candidate_count", "items"],
+      "properties": {
+        "count": {"type": "integer", "minimum": 0},
+        "rss_bytes": {"type": "integer", "minimum": 0},
+        "orphan_candidate_count": {"type": "integer", "minimum": 0},
+        "ppid_init_candidate_count": {"type": "integer", "minimum": 0},
+        "parent_missing_candidate_count": {"type": "integer", "minimum": 0},
+        "long_running_count": {"type": "integer", "minimum": 0},
+        "residual_candidate_count": {"type": "integer", "minimum": 0},
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pid", "ppid", "rss_bytes", "uptime_seconds", "started_at_epoch", "parent_present", "parent_state", "orphan_candidate", "long_running", "residual_candidate"],
+            "properties": {
+              "pid": {"type": "integer", "minimum": 1},
+              "ppid": {"type": "integer", "minimum": 0},
+              "rss_bytes": {"type": "integer", "minimum": 0},
+              "uptime_seconds": {"type": "integer", "minimum": 0},
+              "started_at_epoch": {"type": "integer", "minimum": 0},
+              "parent_present": {"type": "boolean"},
+              "parent_state": {"enum": ["present", "init", "missing"]},
+              "orphan_candidate": {"type": "boolean"},
+              "long_running": {"type": "boolean"},
+              "residual_candidate": {"type": "boolean"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

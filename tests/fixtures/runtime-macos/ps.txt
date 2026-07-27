@@ -1,0 +1,18 @@
+100 1 50000 01:00:00 /Applications/Codex.app/Contents/MacOS/Codex
+200 100 90000 00:30:00 /Applications/Codex.app/Contents/Frameworks/Codex Helper (Renderer)
+201 100 95000 00:10:00 /Applications/Codex.app/Contents/Frameworks/Codex Helper (Renderer)
+300 100 12000 00:20:00 /usr/local/bin/SkyComputerUseClient
+301 999 13000 00:05:00 /usr/local/bin/SkyComputerUseClient
+302 100 1000 00:04:00 /usr/local/bin/SkyComputerUseClient
+303 100 1000 00:04:00 /usr/local/bin/SkyComputerUseClient
+304 100 1000 00:04:00 /usr/local/bin/SkyComputerUseClient
+305 100 1000 00:04:00 /usr/local/bin/SkyComputerUseClient
+306 100 1000 00:04:00 /usr/local/bin/SkyComputerUseClient
+307 100 1000 00:04:00 /usr/local/bin/SkyComputerUseClient
+308 100 1000 00:04:00 /usr/local/bin/SkyComputerUseClient
+309 100 1000 00:04:00 /usr/local/bin/SkyComputerUseClient
+310 100 1000 00:04:00 /usr/local/bin/SkyComputerUseClient
+311 100 1000 00:04:00 /usr/local/bin/SkyComputerUseClient
+400 1 14000 07:00:00 /usr/local/bin/SkyComputerUseService
+500 100 15000 00:15:00 /usr/local/bin/playwright-mcp
+600 100 16000 00:05:00 /usr/local/bin/node

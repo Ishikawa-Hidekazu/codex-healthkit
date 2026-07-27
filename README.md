@@ -50,6 +50,7 @@ account, path, report, database, or transcript.
 | Health report | `./bin/codex-healthkit check` | Local metadata only; does not execute `codex` |
 | Before / after | `./bin/codex-healthkit check --compare before.json` | Compares one explicit health report; no automatic history |
 | Optional doctor | `./bin/codex-healthkit check --with-codex-doctor` | Explicitly runs official `codex doctor --json`; may perform provider reachability checks |
+| Optional runtime | `./bin/codex-healthkit check --with-runtime` | macOS-only memory, swap, and bounded process metadata; no command arguments |
 | JSON output | Add `--json` to a health report or comparison | Same data in a machine-readable format |
 
 Start with the default check. It is the narrowest mode and does not execute `codex`.
@@ -153,7 +154,7 @@ It also does not execute the external `codex` command by default.
 ## Options
 
 ```text
-codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--with-codex-version] [--with-codex-doctor]
+codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--with-codex-version] [--with-codex-doctor] [--with-runtime]
 codex-healthkit --version
 codex-healthkit --help
 ```
@@ -173,6 +174,8 @@ It compares:
 - quarantine directory size
 
 This mode requires `jq`. It does not store history, upload telemetry, read SQLite contents, or read session transcript contents.
+
+When both reports were created with `--with-runtime` on macOS, comparison also reports Renderer PID/start-time changes and Computer Use/Playwright worker count deltas. These are review candidates, not proof of a leak or orphan process.
 
 ### `--with-codex-version`
 
@@ -205,6 +208,23 @@ Important:
 - session transcript contents and SQLite contents are not read
 - this option does not add cleanup, delete, or usage-dashboard behavior
 
+### `--with-runtime`
+
+Collects bounded runtime metadata on macOS only:
+
+- system memory-free percentage and swap used
+- count and total RSS for Codex Renderer, Computer Use client/service, and directly identifiable Playwright MCP processes
+- PID, PPID, RSS, uptime, estimated start-time bucket, and whether the parent PID was present in the same snapshot
+- separate PPID 0/1 and parent-PID-absent candidates
+- long-running candidates at six hours or more
+- residual candidates only when an orphan signal and long uptime occur together
+
+It uses executable names only for category matching. It does not collect command arguments, environment variables, open files, executable paths, or parent command names. A generic `node` process cannot be identified as Playwright without reading arguments, so it is intentionally excluded.
+
+On non-macOS systems this section reports `unsupported` and the existing health check continues. High count or long uptime alone is not a leak. A Renderer churn candidate is emitted only when two explicit runtime reports show at least four combined start/exit events; worker growth requires a count increase of at least 10. No process is stopped, killed, or cleaned up.
+
+The runtime object contract is documented in [schemas/runtime-diagnostics-v0.1.schema.json](schemas/runtime-diagnostics-v0.1.schema.json).
+
 ## Example Output
 
 See [examples/report.redacted.md](examples/report.redacted.md).
@@ -229,10 +249,10 @@ Short example:
 The report summary is intentionally simple:
 
 - `ok`: no large local SQLite/WAL spike was detected by the size-only check
-- `watch`: one of the local metadata values is large enough to review
+- `watch`: one of the local file or explicitly requested runtime metadata values crossed a documented review threshold
 - `fail`: optional official doctor mode was requested and official `codex doctor` reported failures
 
-`watch` does not mean credentials were exposed. It also does not mean SQLite contents were read.
+`watch` does not mean credentials were exposed, SQLite contents were read, or a process leak was proven. Runtime process findings are conservative review candidates and can be false positives during normal parallel work.
 
 For more examples, see [docs/usage.md](docs/usage.md) and [docs/faq.md](docs/faq.md).
 
@@ -247,6 +267,7 @@ For more examples, see [docs/usage.md](docs/usage.md) and [docs/faq.md](docs/faq
 - OS credential stores
 - SQLite contents
 - session transcript contents
+- process command arguments, environment variables, or open files
 - account IDs or email addresses
 
 `codex-healthkit` counts `.jsonl` files under the sessions directories, but raw file names are not reported.
@@ -301,6 +322,11 @@ Optional doctor mode:
 
 - Codex CLI
 - `jq`
+
+Optional runtime mode:
+
+- macOS only
+- standard macOS tools: `memory_pressure`, `sysctl`, `ps`
 
 ## Development
 

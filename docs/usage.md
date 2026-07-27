@@ -65,6 +65,8 @@ Important:
 - does not read session transcript contents
 - comparison output is informational and does not make archived session growth a warning by itself
 
+If both reports include macOS runtime metadata, comparison also shows Renderer start/exit candidates and worker count deltas. PID plus an estimated, minute-bucketed start time is used to reduce PID-reuse ambiguity. Four combined Renderer start/exit events make `churn_candidate` true. This is a prompt to review, not proof of instability.
+
 ## Optional Codex Version
 
 Run:
@@ -109,11 +111,33 @@ Important:
 - session transcript contents and SQLite contents are not read
 - no cleanup, delete, or usage-dashboard behavior is added
 
+## Optional macOS Runtime Metadata
+
+Run:
+
+```bash
+./bin/codex-healthkit check --with-runtime
+```
+
+This mode uses macOS `memory_pressure`, `sysctl vm.swapusage`, and `ps` with only PID, PPID, RSS, elapsed time, and executable name fields. The executable name is immediately reduced to one of four public categories: Codex Renderer, Computer Use client, Computer Use service, or Playwright worker.
+
+Thresholds:
+
+- swap: `observe` at 4096 MiB, `watch` at 8192 MiB
+- memory free: `observe` at 20% or lower, `watch` at 10% or lower
+- long-running candidate: 21600 seconds (six hours)
+- Renderer churn candidate: four combined start/exit events between two explicit reports
+- worker growth candidate: count increase of 10 or more between two explicit reports
+
+An orphan candidate means PPID 0/1 or a parent PID absent from the same process snapshot. A residual candidate requires both an orphan signal and six-hour uptime. A missing parent can also be a timing race. High count, high RSS, or long uptime can be normal during parallel work. The report distinguishes these signals and does not stop any process.
+
+On Linux and other non-macOS systems, runtime diagnostics report `unsupported`; the existing file metadata checks continue normally.
+
 ## Interpreting Summary Status
 
 `ok` means no large local SQLite/WAL spike was detected by the size-only check.
 
-`watch` means one of the local metadata values is large enough to deserve another look. It does not mean `codex-healthkit` read SQLite contents or found a credential problem.
+`watch` means one of the local file values, or an explicitly requested runtime pressure value, is large enough to deserve another look. It does not mean `codex-healthkit` read SQLite contents, found a credential problem, or proved a process leak.
 
 `fail` can appear when optional official doctor mode is requested and official `codex doctor` reports failures.
 

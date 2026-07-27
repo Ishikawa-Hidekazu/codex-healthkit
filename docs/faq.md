@@ -18,9 +18,17 @@ Counting session files helps users understand local state growth without reading
 
 ## What does `watch` mean?
 
-`watch` means a size-only check found something large enough to review, usually a large SQLite DB or WAL file.
+`watch` means a local file check, or an explicitly requested macOS runtime pressure check, found something large enough to review.
 
-It does not mean the tool read the database contents. It also does not mean credentials were exposed.
+It does not mean the tool read database contents, exposed credentials, or proved that a process is leaked or orphaned.
+
+## Does runtime mode read process commands?
+
+No. `--with-runtime` uses only PID, PPID, RSS, elapsed time, and executable name metadata. It does not read command arguments, environment variables, or open files. Raw executable paths and parent command names are not reported.
+
+## Will runtime mode kill stale workers?
+
+No. Orphan, long-running, worker-growth, and Renderer-churn values are conservative review candidates. The tool does not stop, restart, or clean up processes.
 
 ## Why is `--with-codex-doctor` optional?
 
@@ -37,4 +45,3 @@ No. v0.1 is read-only. It does not delete, archive, compact, or clean up files.
 ## Will this estimate my usage or quota?
 
 No. Usage estimation would likely require transcript or account-state analysis, which is outside the v0.1 safety boundary.
-

@@ -20,7 +20,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y shellcheck jq
+          sudo apt-get install -y shellcheck jq python3-jsonschema
 
       - name: Syntax check
         run: bash -n bin/codex-healthkit scripts/render-demo.sh scripts/render-visuals.sh tests/run.sh tests/fixtures/fake-bin/codex
@@ -33,6 +33,17 @@ jobs:
 
       - name: Validate JSON output
         run: ./bin/codex-healthkit check --json | jq empty
+
+      - name: Validate runtime schema fixture
+        run: |
+          CODEX_HEALTHKIT_TEST_OS=Darwin \
+            CODEX_HEALTHKIT_TEST_EPOCH=1784592000 \
+            CODEX_HEALTHKIT_TEST_RUNTIME_DIR="$PWD/tests/fixtures/runtime-macos" \
+            CODEX_HOME="$PWD/tests/fixtures/codex-home" \
+            CODEX_SQLITE_HOME="$PWD/tests/fixtures/codex-home" \
+            ./bin/codex-healthkit check --with-runtime --json \
+            | jq '.runtime' >/tmp/runtime.json
+          python3 -c 'import json, jsonschema; jsonschema.validate(json.load(open("/tmp/runtime.json")), json.load(open("schemas/runtime-diagnostics-v0.1.schema.json")))'
 
   macos:
     name: macOS smoke test

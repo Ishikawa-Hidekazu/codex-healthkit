@@ -49,6 +49,7 @@ database、transcriptは含みません。
 | health report | `./bin/codex-healthkit check` | local metadataだけ。`codex`を実行しない |
 | before / after | `./bin/codex-healthkit check --compare before.json` | 明示したhealth reportを1件比較。自動historyなし |
 | optional doctor | `./bin/codex-healthkit check --with-codex-doctor` | official `codex doctor --json`を明示実行。provider到達性checkの可能性あり |
+| optional runtime | `./bin/codex-healthkit check --with-runtime` | macOS限定のmemory、swap、限定的process metadata。command argsは読まない |
 | JSON output | health reportまたは比較へ`--json`を追加 | 同じdataを機械処理しやすい形式で出力 |
 
 最初はdefault checkから始めてください。これが一番狭いモードで、`codex` を実行しません。
@@ -152,7 +153,7 @@ SQLiteデータベースやsession transcriptの中身は開きません。
 ## オプション
 
 ```text
-codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--with-codex-version] [--with-codex-doctor]
+codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--with-codex-version] [--with-codex-doctor] [--with-runtime]
 codex-healthkit --version
 codex-healthkit --help
 ```
@@ -172,6 +173,8 @@ codex-healthkit --help
 - quarantine directory のサイズ
 
 このモードには `jq` が必要です。historyを自動保存せず、telemetry送信もせず、SQLiteの中身やsession transcriptの中身は読みません。
+
+両方のreportをmacOSで`--with-runtime`付きで作った場合、RendererのPID/start-time変化とComputer Use/Playwright worker件数deltaも比較します。これは確認候補であり、leakやorphanの確定診断ではありません。
 
 ### `--with-codex-version`
 
@@ -204,6 +207,23 @@ codex doctor --json
 - session transcript本文とSQLite本文は読みません
 - cleanup、delete、usage dashboard機能は追加しません
 
+### `--with-runtime`
+
+macOSで、次の限定的なruntime metadataを収集します。
+
+- system memory free percentageとswap used
+- Codex Renderer、Computer Use client/service、実行ファイル名から直接識別できるPlaywright MCP processの件数と合計RSS
+- PID、PPID、RSS、uptime、推定start-time bucket、同じsnapshot内に親PIDが存在したか
+- PPID 0/1候補と、親PIDがsnapshotにない候補を分離
+- 6時間以上のlong-running候補
+- orphan signalとlong uptimeの両方を満たす場合だけresidual候補
+
+分類には実行ファイル名だけを使います。command arguments、environment variables、open files、実行ファイルpath、親command名は収集しません。genericな`node` processはargumentsを読まないとPlaywrightと判定できないため、意図的に除外します。
+
+macOS以外では`unsupported`を返し、既存health checkは継続します。件数が多い、uptimeが長いというだけではleakと判定しません。Renderer churn候補は明示的な2つのruntime report間でstart/exitが合計4件以上、worker growth候補は件数が10以上増えた場合だけ出します。processのstop、kill、cleanupは行いません。
+
+runtime objectのcontractは [schemas/runtime-diagnostics-v0.1.schema.json](schemas/runtime-diagnostics-v0.1.schema.json) にあります。
+
 ## 出力例
 
 [examples/report.redacted.md](examples/report.redacted.md) を参照してください。
@@ -228,10 +248,10 @@ codex doctor --json
 レポートのsummaryは、意図的にシンプルにしています。
 
 - `ok`: サイズだけの確認では、大きなSQLite/WALの増加は見つかっていません
-- `watch`: ローカルメタデータのどれかが大きく、確認した方がよい状態です
+- `watch`: local fileまたは明示実行したruntime metadataが、文書化された確認thresholdを超えた状態です
 - `fail`: optional official doctor modeを実行し、公式 `codex doctor` がfailureを返した状態です
 
-`watch` は、認証情報が漏れたという意味ではありません。SQLiteの中身を読んだという意味でもありません。
+`watch` は、認証情報が漏れた、SQLite本文を読んだ、process leakが確定したという意味ではありません。runtime findingsは保守的な確認候補で、通常の並列作業でもfalse positiveになり得ます。
 
 詳しくは [docs/usage.md](docs/usage.md) と [docs/faq.md](docs/faq.md) を参照してください。
 
@@ -246,6 +266,7 @@ codex doctor --json
 - OS credential stores
 - SQLite contents
 - session transcript contents
+- process command arguments、environment variables、open files
 - account IDs or email addresses
 
 `codex-healthkit` はsessions配下の `.jsonl` ファイル数を数えますが、rawのファイル名はレポートしません。
@@ -300,6 +321,11 @@ optional doctor mode:
 
 - Codex CLI
 - `jq`
+
+optional runtime mode:
+
+- macOSのみ
+- macOS標準tools: `memory_pressure`, `sysctl`, `ps`
 
 ## 開発
 
