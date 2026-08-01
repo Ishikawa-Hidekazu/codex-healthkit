@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Ishikawa-Hidekazu/codex-healthkit/blob/main/schemas/comparison-v0.2.schema.json",
+  "title": "codex-healthkit comparison object v0.2",
+  "type": "object",
+  "required": ["requested", "loaded", "note"],
+  "properties": {
+    "requested": { "type": "boolean" },
+    "loaded": { "type": "boolean" },
+    "note": { "type": "string" },
+    "previous_generated_at": { "type": "string" },
+    "items": { "type": "object" },
+    "interval": {
+      "type": "object",
+      "required": ["valid", "seconds", "note"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "seconds": { "type": ["integer", "null"], "minimum": 1 },
+        "note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "sessions_growth": {
+      "type": "object",
+      "required": ["delta_bytes", "bytes_per_day"],
+      "properties": {
+        "delta_bytes": { "type": "integer" },
+        "bytes_per_day": { "type": ["integer", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "advisory": {
+      "type": "object",
+      "required": ["requested", "triggered", "reasons", "thresholds", "note"],
+      "properties": {
+        "requested": { "const": true },
+        "triggered": { "type": "boolean" },
+        "reasons": {
+          "type": "array",
+          "items": { "enum": ["large_total", "rapid_growth"] },
+          "uniqueItems": true
+        },
+        "thresholds": {
+          "type": "object",
+          "required": ["sessions_total_bytes", "sessions_daily_growth_bytes"],
+          "properties": {
+            "sessions_total_bytes": { "type": ["integer", "null"], "minimum": 1 },
+            "sessions_daily_growth_bytes": { "type": ["integer", "null"], "minimum": 1 }
+          },
+          "additionalProperties": false
+        },
+        "note": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "requested": { "const": true } } },
+      "then": {
+        "required": ["previous_generated_at", "items", "interval", "sessions_growth"]
+      }
+    }
+  ],
+  "additionalProperties": false
+}

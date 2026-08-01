@@ -65,6 +65,22 @@ Important:
 - does not read session transcript contents
 - comparison output is informational and does not make archived session growth a warning by itself
 
+### Optional sessions advisory
+
+Every loaded comparison includes a validated interval and an active sessions byte delta normalized to 24 hours. Invalid, equal, or non-increasing `generated_at` timestamps leave the daily rate unavailable.
+
+To evaluate explicit thresholds without changing the normal summary or exit code:
+
+```bash
+./bin/codex-healthkit check --compare before.json \
+  --sessions-total-advisory-bytes 32212254720 \
+  --sessions-daily-growth-advisory-bytes 4294967296
+```
+
+Threshold values are integer bytes. They are disabled unless explicitly provided and require `--compare`. The advisory reasons are `large_total` and `rapid_growth`. A result is a prompt to review metadata, not proof that sessions are unhealthy. The command never deletes or cleans up sessions.
+
+The JSON shape for the comparison object is documented in [`../schemas/comparison-v0.2.schema.json`](../schemas/comparison-v0.2.schema.json).
+
 ## Optional Codex Version
 
 Run:

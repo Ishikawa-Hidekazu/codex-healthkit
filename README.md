@@ -153,7 +153,7 @@ It also does not execute the external `codex` command by default.
 ## Options
 
 ```text
-codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--with-codex-version] [--with-codex-doctor]
+codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--with-codex-doctor]
 codex-healthkit --version
 codex-healthkit --help
 ```
@@ -173,6 +173,23 @@ It compares:
 - quarantine directory size
 
 This mode requires `jq`. It does not store history, upload telemetry, read SQLite contents, or read session transcript contents.
+
+The comparison also reports the validated interval between the previous and current `generated_at` timestamps and the active sessions byte delta normalized to one day. Canonical UTC timestamps such as `2026-08-01T00:00:00Z` are required; invalid, equal, or non-increasing timestamps leave the daily rate unavailable instead of producing a misleading value.
+
+Optional sessions advisories are enabled only when you provide an integer byte threshold:
+
+```bash
+codex-healthkit check --json --compare before.json \
+  --sessions-total-advisory-bytes 32212254720 \
+  --sessions-daily-growth-advisory-bytes 4294967296
+```
+
+- `--sessions-total-advisory-bytes` may add the reason `large_total`.
+- `--sessions-daily-growth-advisory-bytes` may add the reason `rapid_growth`.
+- Thresholds require `--compare`; human-size strings such as `30G` are not accepted.
+- Advisory results do not change summary status or exit code.
+- No threshold is enabled by default, and no cleanup or deletion is performed.
+- The machine-readable comparison contract is documented in [`schemas/comparison-v0.2.schema.json`](schemas/comparison-v0.2.schema.json).
 
 ### `--with-codex-version`
 
