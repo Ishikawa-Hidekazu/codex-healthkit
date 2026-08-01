@@ -81,6 +81,16 @@ It must not:
 - read session transcript contents
 - treat archived session growth as a warning by itself
 
+Optional sessions advisory thresholds do not expand the read boundary. They use only the current sessions directory byte total, the previous report's emitted byte total, and the two emitted `generated_at` timestamps. They do not read file names or transcript contents.
+
+The advisory:
+
+- is disabled unless an integer byte threshold is explicitly provided
+- reports `large_total` and `rapid_growth` separately
+- leaves daily growth unavailable for invalid, equal, or non-increasing timestamps
+- does not change the normal summary status or exit code
+- does not store history, delete sessions, or perform cleanup
+
 ## Sharing Reports
 
 Reports are intended to be safe to paste into an issue after review, but users should still check them before sharing.

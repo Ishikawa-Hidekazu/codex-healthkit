@@ -23,16 +23,18 @@ jobs:
           sudo apt-get install -y shellcheck jq
 
       - name: Syntax check
-        run: bash -n bin/codex-healthkit scripts/render-demo.sh scripts/render-visuals.sh tests/run.sh tests/fixtures/fake-bin/codex
+        run: bash -n bin/codex-healthkit scripts/render-demo.sh scripts/render-visuals.sh tests/run.sh tests/fixtures/fake-bin/codex tests/fixtures/fake-date-bin/date
 
       - name: ShellCheck
-        run: shellcheck bin/codex-healthkit scripts/render-demo.sh scripts/render-visuals.sh tests/run.sh tests/fixtures/fake-bin/codex
+        run: shellcheck bin/codex-healthkit scripts/render-demo.sh scripts/render-visuals.sh tests/run.sh tests/fixtures/fake-bin/codex tests/fixtures/fake-date-bin/date
 
       - name: Test
         run: tests/run.sh
 
       - name: Validate JSON output
-        run: ./bin/codex-healthkit check --json | jq empty
+        run: |
+          ./bin/codex-healthkit check --json | jq empty
+          jq empty schemas/comparison-v0.2.schema.json
 
   macos:
     name: macOS smoke test
@@ -42,7 +44,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Syntax check
-        run: bash -n bin/codex-healthkit scripts/render-demo.sh scripts/render-visuals.sh tests/run.sh tests/fixtures/fake-bin/codex
+        run: bash -n bin/codex-healthkit scripts/render-demo.sh scripts/render-visuals.sh tests/run.sh tests/fixtures/fake-bin/codex tests/fixtures/fake-date-bin/date
 
       - name: Test
         run: tests/run.sh

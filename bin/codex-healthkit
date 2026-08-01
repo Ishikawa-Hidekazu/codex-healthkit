@@ -9,6 +9,9 @@ COMPARE_FILE=""
 COMPARE_REQUESTED=0
 COMPARE_LOADED=0
 COMPARE_NOTE="not requested; pass --compare <previous-report.json> to compare metadata deltas"
+SESSIONS_TOTAL_ADVISORY_BYTES=""
+SESSIONS_DAILY_GROWTH_ADVISORY_BYTES=""
+SESSIONS_ADVISORY_REQUESTED=0
 COMMAND="check"
 
 usage() {
@@ -16,7 +19,7 @@ usage() {
 codex-healthkit - local metadata health checks for daily Codex operators
 
 Usage:
-  codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--with-codex-version] [--with-codex-doctor]
+  codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--with-codex-doctor]
   codex-healthkit --version
   codex-healthkit --help
 
@@ -28,6 +31,12 @@ Default behavior:
 Optional:
   --compare <previous-report.json> compares current metadata with an explicit
      previous codex-healthkit JSON report. Requires jq. Does not store history.
+  --sessions-total-advisory-bytes <bytes> flags large_total when the current
+     active sessions directory meets the explicit byte threshold. Requires
+     --compare. Does not change summary status or exit code.
+  --sessions-daily-growth-advisory-bytes <bytes> flags rapid_growth when the
+     daily-normalized active sessions increase meets the explicit byte
+     threshold. Requires --compare. Does not change summary status or exit code.
   --with-codex-version runs `codex --version`.
   --with-codex-doctor runs official `codex doctor --json` and extracts only
      redacted summary fields (status, ok/warn/fail counts, and a note). Raw
@@ -220,6 +229,83 @@ direction_for_delta() {
   fi
 }
 
+positive_integer() {
+  local prefix suffix
+
+  case "$1" in
+    ''|*[!0-9]*|0) return 1 ;;
+  esac
+
+  if [ "${#1}" -gt 19 ]; then
+    return 1
+  fi
+
+  if [ "${#1}" -eq 19 ]; then
+    prefix="${1%??????????}"
+    suffix="${1#?????????}"
+    if [ "$prefix" -gt 922337203 ] ||
+      { [ "$prefix" -eq 922337203 ] && [ "$suffix" -gt 6854775807 ]; }; then
+      return 1
+    fi
+  fi
+
+  return 0
+}
+
+timestamp_epoch() {
+  local value="$1" parsed
+
+  case "$value" in
+    ????-??-??T??:??:??Z) ;;
+    *) return 1 ;;
+  esac
+
+  if parsed="$(LC_ALL=C date -j -u -f '%Y-%m-%dT%H:%M:%SZ' "$value" '+%s' 2>/dev/null)"; then
+    printf '%s' "$parsed"
+    return
+  fi
+
+  if parsed="$(LC_ALL=C date -u -d "$value" '+%s' 2>/dev/null)"; then
+    printf '%s' "$parsed"
+    return
+  fi
+
+  return 1
+}
+
+advisory_reasons_json() {
+  local separator=""
+  printf '['
+  if [ "$ADVISORY_LARGE_TOTAL" -eq 1 ]; then
+    printf '%s"large_total"' "$separator"
+    separator=", "
+  fi
+  if [ "$ADVISORY_RAPID_GROWTH" -eq 1 ]; then
+    printf '%s"rapid_growth"' "$separator"
+  fi
+  printf ']'
+}
+
+advisory_json_fragment() {
+  if [ "$SESSIONS_ADVISORY_REQUESTED" -ne 1 ]; then
+    return
+  fi
+
+  cat <<JSON
+,
+    "advisory": {
+      "requested": true,
+      "triggered": $(bool_json "$SESSIONS_ADVISORY_TRIGGERED"),
+      "reasons": $(advisory_reasons_json),
+      "thresholds": {
+        "sessions_total_bytes": $(if [ -n "$SESSIONS_TOTAL_ADVISORY_BYTES" ]; then printf '%s' "$SESSIONS_TOTAL_ADVISORY_BYTES"; else printf 'null'; fi),
+        "sessions_daily_growth_bytes": $(if [ -n "$SESSIONS_DAILY_GROWTH_ADVISORY_BYTES" ]; then printf '%s' "$SESSIONS_DAILY_GROWTH_ADVISORY_BYTES"; else printf 'null'; fi)
+      },
+      "note": $(json_string "$SESSIONS_ADVISORY_NOTE")
+    }
+JSON
+}
+
 previous_number() {
   local filter="$1"
   jq -er "$filter // 0 | if type == \"number\" then . else 0 end" "$COMPARE_FILE" 2>/dev/null || printf '0'
@@ -291,7 +377,16 @@ JSON
         "delta_bytes": $DELTA_QUARANTINE_BYTES,
         "direction": $(json_string "$(direction_for_delta "$DELTA_QUARANTINE_BYTES")")
       }
-    }
+    },
+    "interval": {
+      "valid": $(bool_json "$COMPARISON_INTERVAL_VALID"),
+      "seconds": $(if [ "$COMPARISON_INTERVAL_VALID" -eq 1 ]; then printf '%s' "$COMPARISON_INTERVAL_SECONDS"; else printf 'null'; fi),
+      "note": $(json_string "$COMPARISON_INTERVAL_NOTE")
+    },
+    "sessions_growth": {
+      "delta_bytes": $DELTA_SESSIONS_BYTES,
+      "bytes_per_day": $(if [ "$COMPARISON_INTERVAL_VALID" -eq 1 ]; then printf '%s' "$SESSIONS_GROWTH_BYTES_PER_DAY"; else printf 'null'; fi)
+    }$(advisory_json_fragment)
   }
 JSON
 }
@@ -307,6 +402,9 @@ comparison_markdown() {
 
 - requested: \`yes\`
 - previous_generated_at: \`$(markdown_inline "$PREVIOUS_GENERATED_AT")\`
+- current_generated_at: \`$(markdown_inline "$GENERATED_AT")\`
+- comparison_interval: \`$(if [ "$COMPARISON_INTERVAL_VALID" -eq 1 ]; then printf '%s seconds' "$COMPARISON_INTERVAL_SECONDS"; else printf 'unavailable'; fi)\`
+- active_sessions_daily_growth: \`$(if [ "$COMPARISON_INTERVAL_VALID" -eq 1 ]; then signed_human_delta_bytes "$SESSIONS_GROWTH_BYTES_PER_DAY"; else printf 'unavailable'; fi) per day\`
 - note: $(markdown_inline "$COMPARE_NOTE")
 
 | item | previous | current | delta | note |
@@ -317,10 +415,23 @@ comparison_markdown() {
 | archived sessions | $(human_bytes_value "$PREV_ARCHIVED_BYTES") / $PREV_ARCHIVED_COUNT | $(human_bytes_value "$ARCHIVED_BYTES") / $ARCHIVED_COUNT | $(signed_human_delta_bytes "$DELTA_ARCHIVED_BYTES") / $(signed_delta_count "$DELTA_ARCHIVED_COUNT") | normal growth can be expected; review before deleting |
 | quarantine | $(human_bytes_value "$PREV_QUARANTINE_BYTES") | $(human_bytes_value "$QUARANTINE_BYTES") | $(signed_human_delta_bytes "$DELTA_QUARANTINE_BYTES") | metadata only |
 MARKDOWN
+
+  if [ "$SESSIONS_ADVISORY_REQUESTED" -eq 1 ]; then
+    cat <<MARKDOWN
+
+### Sessions Advisory
+
+- triggered: \`$(if [ "$SESSIONS_ADVISORY_TRIGGERED" -eq 1 ]; then printf 'yes'; else printf 'no'; fi)\`
+- reasons: \`$(if [ "$SESSIONS_ADVISORY_TRIGGERED" -eq 1 ]; then advisory_reasons_json; else printf '[]'; fi)\`
+- total threshold: \`$(if [ -n "$SESSIONS_TOTAL_ADVISORY_BYTES" ]; then printf '%s bytes' "$SESSIONS_TOTAL_ADVISORY_BYTES"; else printf 'not set'; fi)\`
+- daily growth threshold: \`$(if [ -n "$SESSIONS_DAILY_GROWTH_ADVISORY_BYTES" ]; then printf '%s bytes/day' "$SESSIONS_DAILY_GROWTH_ADVISORY_BYTES"; else printf 'not set'; fi)\`
+- note: $(markdown_inline "$SESSIONS_ADVISORY_NOTE")
+MARKDOWN
+  fi
 }
 
 load_previous_report() {
-  local previous_tool
+  local previous_tool previous_epoch current_epoch
 
   if [ "$COMPARE_REQUESTED" -ne 1 ]; then
     return
@@ -362,8 +473,48 @@ load_previous_report() {
   DELTA_ARCHIVED_COUNT=$((ARCHIVED_COUNT - PREV_ARCHIVED_COUNT))
   DELTA_QUARANTINE_BYTES=$((QUARANTINE_BYTES - PREV_QUARANTINE_BYTES))
 
+  if previous_epoch="$(timestamp_epoch "$PREVIOUS_GENERATED_AT")" &&
+    current_epoch="$(timestamp_epoch "$GENERATED_AT")" &&
+    [ "$current_epoch" -gt "$previous_epoch" ]; then
+    COMPARISON_INTERVAL_VALID=1
+    COMPARISON_INTERVAL_SECONDS=$((current_epoch - previous_epoch))
+    SESSIONS_GROWTH_BYTES_PER_DAY=$((DELTA_SESSIONS_BYTES * 86400 / COMPARISON_INTERVAL_SECONDS))
+    COMPARISON_INTERVAL_NOTE="calculated from canonical UTC generated_at timestamps"
+  else
+    COMPARISON_INTERVAL_VALID=0
+    COMPARISON_INTERVAL_SECONDS=0
+    SESSIONS_GROWTH_BYTES_PER_DAY=0
+    COMPARISON_INTERVAL_NOTE="unavailable because generated_at timestamps are invalid, equal, or not increasing"
+  fi
+
   COMPARE_LOADED=1
   COMPARE_NOTE="explicit previous report loaded; comparison uses metadata already emitted by codex-healthkit and is informational"
+}
+
+evaluate_sessions_advisory() {
+  if [ "$SESSIONS_ADVISORY_REQUESTED" -ne 1 ]; then
+    return
+  fi
+
+  if [ -n "$SESSIONS_TOTAL_ADVISORY_BYTES" ] &&
+    [ "$SESSIONS_BYTES" -ge "$SESSIONS_TOTAL_ADVISORY_BYTES" ]; then
+    ADVISORY_LARGE_TOTAL=1
+  fi
+
+  if [ -n "$SESSIONS_DAILY_GROWTH_ADVISORY_BYTES" ] &&
+    [ "$COMPARISON_INTERVAL_VALID" -eq 1 ] &&
+    [ "$SESSIONS_GROWTH_BYTES_PER_DAY" -ge "$SESSIONS_DAILY_GROWTH_ADVISORY_BYTES" ]; then
+    ADVISORY_RAPID_GROWTH=1
+  fi
+
+  if [ "$ADVISORY_LARGE_TOTAL" -eq 1 ] || [ "$ADVISORY_RAPID_GROWTH" -eq 1 ]; then
+    SESSIONS_ADVISORY_TRIGGERED=1
+    SESSIONS_ADVISORY_NOTE="one or more explicit metadata thresholds were met; review only, no cleanup performed"
+  elif [ -n "$SESSIONS_DAILY_GROWTH_ADVISORY_BYTES" ] && [ "$COMPARISON_INTERVAL_VALID" -ne 1 ]; then
+    SESSIONS_ADVISORY_NOTE="daily growth was not evaluated because the comparison interval is unavailable; no cleanup performed"
+  else
+    SESSIONS_ADVISORY_NOTE="explicit metadata thresholds were not met; no cleanup performed"
+  fi
 }
 
 run_codex_doctor() {
@@ -467,6 +618,30 @@ while [ "$#" -gt 0 ]; do
       [ -n "$COMPARE_FILE" ] || die "--compare requires a previous report path"
       COMPARE_REQUESTED=1
       ;;
+    --sessions-total-advisory-bytes)
+      shift
+      [ "$#" -gt 0 ] || die "--sessions-total-advisory-bytes requires a positive integer"
+      positive_integer "$1" || die "--sessions-total-advisory-bytes requires a positive integer"
+      SESSIONS_TOTAL_ADVISORY_BYTES="$1"
+      SESSIONS_ADVISORY_REQUESTED=1
+      ;;
+    --sessions-total-advisory-bytes=*)
+      SESSIONS_TOTAL_ADVISORY_BYTES="${1#--sessions-total-advisory-bytes=}"
+      positive_integer "$SESSIONS_TOTAL_ADVISORY_BYTES" || die "--sessions-total-advisory-bytes requires a positive integer"
+      SESSIONS_ADVISORY_REQUESTED=1
+      ;;
+    --sessions-daily-growth-advisory-bytes)
+      shift
+      [ "$#" -gt 0 ] || die "--sessions-daily-growth-advisory-bytes requires a positive integer"
+      positive_integer "$1" || die "--sessions-daily-growth-advisory-bytes requires a positive integer"
+      SESSIONS_DAILY_GROWTH_ADVISORY_BYTES="$1"
+      SESSIONS_ADVISORY_REQUESTED=1
+      ;;
+    --sessions-daily-growth-advisory-bytes=*)
+      SESSIONS_DAILY_GROWTH_ADVISORY_BYTES="${1#--sessions-daily-growth-advisory-bytes=}"
+      positive_integer "$SESSIONS_DAILY_GROWTH_ADVISORY_BYTES" || die "--sessions-daily-growth-advisory-bytes requires a positive integer"
+      SESSIONS_ADVISORY_REQUESTED=1
+      ;;
     --version)
       printf 'codex-healthkit %s\n' "$VERSION"
       exit 0
@@ -483,6 +658,8 @@ while [ "$#" -gt 0 ]; do
 done
 
 [ "$COMMAND" = "check" ] || die "unsupported command: $COMMAND"
+[ "$SESSIONS_ADVISORY_REQUESTED" -ne 1 ] || [ "$COMPARE_REQUESTED" -eq 1 ] ||
+  die "sessions advisory thresholds require --compare"
 
 GENERATED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
@@ -563,7 +740,16 @@ DELTA_SESSIONS_COUNT=0
 DELTA_ARCHIVED_BYTES=0
 DELTA_ARCHIVED_COUNT=0
 DELTA_QUARANTINE_BYTES=0
+COMPARISON_INTERVAL_VALID=0
+COMPARISON_INTERVAL_SECONDS=0
+COMPARISON_INTERVAL_NOTE="not requested"
+SESSIONS_GROWTH_BYTES_PER_DAY=0
+ADVISORY_LARGE_TOTAL=0
+ADVISORY_RAPID_GROWTH=0
+SESSIONS_ADVISORY_TRIGGERED=0
+SESSIONS_ADVISORY_NOTE="not requested"
 load_previous_report
+evaluate_sessions_advisory
 
 if [ "$FORMAT" = "json" ]; then
   cat <<JSON

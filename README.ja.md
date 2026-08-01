@@ -152,7 +152,7 @@ SQLiteデータベースやsession transcriptの中身は開きません。
 ## オプション
 
 ```text
-codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--with-codex-version] [--with-codex-doctor]
+codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--with-codex-doctor]
 codex-healthkit --version
 codex-healthkit --help
 ```
@@ -172,6 +172,23 @@ codex-healthkit --help
 - quarantine directory のサイズ
 
 このモードには `jq` が必要です。historyを自動保存せず、telemetry送信もせず、SQLiteの中身やsession transcriptの中身は読みません。
+
+比較結果には、過去と現在の`generated_at`から検証した比較間隔と、active sessionsのbyte差分を1日換算した値も含まれます。`2026-08-01T00:00:00Z`のようなUTC timestampだけを受け付け、不正、同一、逆転した時刻では誤った値を出さず、日次換算を利用不可にします。
+
+sessions advisoryは、整数byteの閾値を明示した場合だけ有効です。
+
+```bash
+codex-healthkit check --json --compare before.json \
+  --sessions-total-advisory-bytes 32212254720 \
+  --sessions-daily-growth-advisory-bytes 4294967296
+```
+
+- `--sessions-total-advisory-bytes`は`large_total`を理由として追加する場合があります。
+- `--sessions-daily-growth-advisory-bytes`は`rapid_growth`を理由として追加する場合があります。
+- 閾値指定には`--compare`が必要です。`30G`のようなhuman-size文字列は受け付けません。
+- advisoryはsummary statusやexit codeを変更しません。
+- デフォルトでは閾値は無効で、cleanupや削除も行いません。
+- 機械可読なcomparison contractは[`schemas/comparison-v0.2.schema.json`](schemas/comparison-v0.2.schema.json)にあります。
 
 ### `--with-codex-version`
 
