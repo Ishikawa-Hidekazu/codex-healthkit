@@ -67,10 +67,12 @@ Heavy Codex users often need to answer simple operational questions:
 
 ## Status
 
-Source-only CLI. Current source version: `v0.2.0`.
+Source-only CLI. Latest tagged release: `v0.2.0`.
 
-The first normal release remains intentionally narrow and read-only.
-For the published source revision, clone with `--branch v0.2.0 --depth 1`.
+The first normal release remains intentionally narrow and read-only. The `main`
+branch may contain reviewed changes for the next release, including the opt-in
+sessions growth advisory. For a stable daily command, install an explicit tag
+rather than linking to a development checkout.
 
 Tested on macOS and Linux. Windows is not supported by this Bash implementation.
 
@@ -118,15 +120,51 @@ Omit `--json` on the second command when you want a Markdown comparison table.
 
 ## Optional Local Install
 
-If you want `codex-healthkit` on your local `PATH`:
+For a stable daily command, keep each released tag in a versioned directory and
+point a `current` symlink at the selected release. This keeps normal use separate
+from development branches and makes rollback a symlink change.
 
 ```bash
-git clone --branch v0.2.0 --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git
-cd codex-healthkit
+VERSION=v0.2.0
+INSTALL_ROOT="$HOME/.local/opt/codex-healthkit"
+
+mkdir -p "$INSTALL_ROOT"
+git clone --branch "$VERSION" --depth 1 \
+  https://github.com/Ishikawa-Hidekazu/codex-healthkit.git \
+  "$INSTALL_ROOT/$VERSION"
+
+ln -sfn "$INSTALL_ROOT/$VERSION" "$INSTALL_ROOT/current"
 mkdir -p ~/.local/bin
-ln -sf "$PWD/bin/codex-healthkit" ~/.local/bin/codex-healthkit
-codex-healthkit check
+ln -sfn "$INSTALL_ROOT/current/bin/codex-healthkit" \
+  ~/.local/bin/codex-healthkit
 ```
+
+Verify the selected version and run the default metadata-only check before
+relying on the new target:
+
+```bash
+codex-healthkit --version
+codex-healthkit check --json | jq -e '.safety | all(.[]; . == false)'
+git -C "$INSTALL_ROOT/$VERSION" rev-parse HEAD
+```
+
+The default check does not execute `codex`, read credentials, open SQLite or
+transcript contents, clean up sessions, or upload telemetry. The `jq` expression
+only verifies the safety fields already emitted by the health report.
+
+To roll back, point `current` at a previously installed tag. The command symlink
+does not need to change:
+
+```bash
+PREVIOUS_VERSION=v0.2.0
+ln -sfn "$INSTALL_ROOT/$PREVIOUS_VERSION" "$INSTALL_ROOT/current"
+codex-healthkit --version
+codex-healthkit check --json | jq -e '.safety | all(.[]; . == false)'
+```
+
+Rollback does not delete reports, sessions, or release directories. Remove a
+versioned directory separately only after confirming that `current` no longer
+points to it.
 
 Uninstall the local command without deleting reports you chose to save:
 
@@ -134,7 +172,8 @@ Uninstall the local command without deleting reports you chose to save:
 rm ~/.local/bin/codex-healthkit
 ```
 
-Delete the cloned source directory separately when you no longer need it.
+Delete `~/.local/opt/codex-healthkit` separately when you no longer need any
+installed release.
 
 ## What It Checks
 
