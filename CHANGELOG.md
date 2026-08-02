@@ -8,6 +8,7 @@ This project follows a simple pre-1.0 changelog style. Dates use UTC.
 
 - Add comparison interval and daily-normalized active sessions growth metadata.
 - Add opt-in sessions total and daily growth advisories with separate `large_total` and `rapid_growth` reasons.
+- Document a tag-pinned install directory, stable `current` symlink, verification, and symlink-only rollback.
 - Keep default checks, summary status, exit codes, storage, and cleanup behavior unchanged.
 
 ## 0.2.0 - 2026-07-27
