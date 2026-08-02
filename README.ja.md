@@ -66,10 +66,10 @@ Codexを日常的に使っていると、次のような確認が必要になる
 
 ## ステータス
 
-source-only CLIです。現在のsource versionは `v0.2.0` です。
+source-only CLIです。最新のtagged releaseは `v0.3.0` です。
 
 最初の通常releaseも、意図的に狭く、読み取り専用にしています。
-公開済みsource revisionを固定してcloneする場合は`--branch v0.2.0 --depth 1`を指定します。
+公開済みsource revisionを固定してcloneする場合は`--branch v0.3.0 --depth 1`を指定します。
 
 macOSとLinuxで検証済みです。WindowsはこのBash実装では未対応です。
 
@@ -120,7 +120,7 @@ JSON health report:
 local `PATH`へ置く場合:
 
 ```bash
-git clone --branch v0.2.0 --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git
+git clone --branch v0.3.0 --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git
 cd codex-healthkit
 mkdir -p ~/.local/bin
 ln -sf "$PWD/bin/codex-healthkit" ~/.local/bin/codex-healthkit

@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple pre-1.0 changelog style. Dates use UTC.
 
-## Unreleased
+## 0.3.0 - 2026-08-02
 
 - Add comparison interval and daily-normalized active sessions growth metadata.
 - Add opt-in sessions total and daily growth advisories with separate `large_total` and `rapid_growth` reasons.
