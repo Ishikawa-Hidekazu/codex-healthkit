@@ -17,8 +17,11 @@ compare_markdown_report="$(mktemp)"
 advisory_previous_report="$(mktemp)"
 advisory_json_report="$(mktemp)"
 default_summary_report="$(mktemp)"
+update_json_report="$(mktemp)"
+update_markdown_report="$(mktemp)"
 symlink_home="$(mktemp -d)"
-trap 'rm -f "$markdown_report" "$json_report" "$invalid_doctor_report" "$valid_doctor_report" "$compare_previous_report" "$compare_json_report" "$compare_markdown_report" "$advisory_previous_report" "$advisory_json_report" "$default_summary_report" "$FAKE_CODEX_LOG"; rm -rf "$symlink_home"' EXIT
+FAKE_CURL_LOG="$ROOT_DIR/tests/fixtures/fake-curl.log"
+trap 'rm -f "$markdown_report" "$json_report" "$invalid_doctor_report" "$valid_doctor_report" "$compare_previous_report" "$compare_json_report" "$compare_markdown_report" "$advisory_previous_report" "$advisory_json_report" "$default_summary_report" "$update_json_report" "$update_markdown_report" "$FAKE_CODEX_LOG" "$FAKE_CURL_LOG"; rm -rf "$symlink_home"' EXIT
 
 test "$("$ROOT_DIR/bin/codex-healthkit" --version)" = "codex-healthkit 0.3.0"
 
@@ -47,6 +50,7 @@ grep -q '"auth_files_read": false' "$json_report"
 
 if command -v jq >/dev/null 2>&1; then
   jq empty "$json_report"
+  jq -e 'has("codex_update") | not' "$json_report" >/dev/null
   current_sessions_bytes="$(jq -r '.state.sessions.bytes' "$json_report")"
   previous_growth_bytes=1024
   expected_daily_growth=$(((current_sessions_bytes - previous_growth_bytes) * 2))
@@ -184,6 +188,51 @@ if command -v jq >/dev/null 2>&1; then
   grep -q '"large_total"' "$compare_markdown_report"
 
   jq empty "$ROOT_DIR/schemas/comparison-v0.2.schema.json"
+fi
+
+rm -f "$FAKE_CURL_LOG"
+PATH="$FAKE_BIN:$PATH" FAKE_CODEX_VERSION=0.147.0 FAKE_LATEST_CODEX_VERSION=0.148.0 \
+  FAKE_CURL_LOG="$FAKE_CURL_LOG" CODEX_HOME="$FIXTURE_HOME" CODEX_SQLITE_HOME="$FIXTURE_HOME" \
+  "$ROOT_DIR/bin/codex-healthkit" check --json --check-latest-codex >"$update_json_report"
+
+if command -v jq >/dev/null 2>&1; then
+  jq -e --arg expected_executable "$FAKE_BIN/codex" '
+    .codex_cli.version == "codex-cli 0.147.0" and
+    .codex_update.requested == true and
+    .codex_update.checked == true and
+    .codex_update.executable_path == $expected_executable and
+    .codex_update.current_version == "0.147.0" and
+    .codex_update.latest_version == "0.148.0" and
+    .codex_update.update_available == true and
+    .summary.status == "ok" and
+    .safety.healthkit_network_telemetry == false
+  ' "$update_json_report" >/dev/null
+fi
+grep -q '^-q --proto =https ' "$FAKE_CURL_LOG"
+grep -q 'https://registry.npmjs.org/@openai%2Fcodex/latest' "$FAKE_CURL_LOG"
+if grep -Eqi 'authorization|cookie|token' "$FAKE_CURL_LOG"; then
+  exit 1
+fi
+
+PATH="$FAKE_BIN:$PATH" FAKE_CODEX_VERSION=0.148.0-alpha.1 FAKE_LATEST_CODEX_VERSION=0.148.0 \
+  CODEX_HOME="$FIXTURE_HOME" CODEX_SQLITE_HOME="$FIXTURE_HOME" \
+  "$ROOT_DIR/bin/codex-healthkit" check --check-latest-codex >"$update_markdown_report"
+expected_update_markdown="update_available: $(printf '\140')yes$(printf '\140')"
+grep -Fq "$expected_update_markdown" "$update_markdown_report"
+grep -Fq "$FAKE_BIN/codex" "$update_markdown_report"
+
+PATH="$FAKE_BIN:$PATH" FAKE_CODEX_VERSION=0.148.0 FAKE_CURL_MODE=failure \
+  CODEX_HOME="$FIXTURE_HOME" CODEX_SQLITE_HOME="$FIXTURE_HOME" \
+  "$ROOT_DIR/bin/codex-healthkit" check --json --check-latest-codex >"$update_json_report"
+if command -v jq >/dev/null 2>&1; then
+  jq -e '
+    .codex_update.requested == true and
+    .codex_update.checked == false and
+    .codex_update.current_version == null and
+    .codex_update.latest_version == null and
+    .codex_update.update_available == null and
+    .summary.status == "ok"
+  ' "$update_json_report" >/dev/null
 fi
 
 if CODEX_HOME="$FIXTURE_HOME" CODEX_SQLITE_HOME="$FIXTURE_HOME" \

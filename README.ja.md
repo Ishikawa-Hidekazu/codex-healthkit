@@ -152,7 +152,7 @@ SQLiteデータベースやsession transcriptの中身は開きません。
 ## オプション
 
 ```text
-codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--with-codex-doctor]
+codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--check-latest-codex] [--with-codex-doctor]
 codex-healthkit --version
 codex-healthkit --help
 ```
@@ -199,6 +199,24 @@ codex --version
 ```
 
 Codex CLIのバージョンをレポートに含めたい場合だけ使います。
+
+### `--check-latest-codex`
+
+インストール済みのCodex CLIを、公式npmのstableな`latest` dist-tagと比較します。
+
+```bash
+codex-healthkit check --json --check-latest-codex
+```
+
+このoptionは`--with-codex-version`を含みます。公開されている`@openai/codex`のmetadata endpointへHTTPS GETを1回だけ送り、解決された`executable_path`、`current_version`、`latest_version`、`update_available`をreportします。実行ファイルの内容は読まず、PATHの優先順による差だけを見えるようにします。
+
+- defaultでは無効で、通常checkはlocal-onlyのままです
+- `curl`と`jq`が必要です
+- `.curlrc`を読み込まず、authorization、cookie、token headerを送りません
+- timeoutは5秒、retryは0回です
+- Codexのinstallやupdateは行いません
+- 確認失敗はsummary statusやexit codeを変更しません
+- default JSON outputにversion-check fieldを追加しません
 
 ### `--with-codex-doctor`
 

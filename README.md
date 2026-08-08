@@ -190,7 +190,7 @@ It also does not execute the external `codex` command by default.
 ## Options
 
 ```text
-codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--with-codex-doctor]
+codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--check-latest-codex] [--with-codex-doctor]
 codex-healthkit --version
 codex-healthkit --help
 ```
@@ -237,6 +237,24 @@ codex --version
 ```
 
 Use this only when you want the report to include the installed Codex CLI version.
+
+### `--check-latest-codex`
+
+Checks the installed Codex CLI version against the official stable npm `latest` dist-tag:
+
+```bash
+codex-healthkit check --json --check-latest-codex
+```
+
+This option implies `--with-codex-version`. It sends one HTTPS GET request to the public `@openai/codex` metadata endpoint and reports the resolved `executable_path`, `current_version`, `latest_version`, and `update_available`. The executable path makes PATH precedence differences visible without reading any file contents.
+
+- disabled by default; the default check remains local-only
+- requires `curl` and `jq`
+- disables `.curlrc` loading and sends no authorization, cookie, or token header
+- uses a five-second timeout and no retry
+- never installs or updates Codex
+- a failed check does not change summary status or exit code
+- no version-check fields are added to default JSON output
 
 ### `--with-codex-doctor`
 
