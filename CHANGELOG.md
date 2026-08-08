@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple pre-1.0 changelog style. Dates use UTC.
 
+## Unreleased
+
+- Add an opt-in stable Codex CLI version check against the official npm `latest` dist-tag, including the resolved executable path.
+- Keep the default check offline and preserve summary status, exit codes, and update behavior.
+- Report version-check failures as metadata only and never install or update Codex automatically.
+
 ## 0.3.0 - 2026-08-02
 
 - Add comparison interval and daily-normalized active sessions growth metadata.

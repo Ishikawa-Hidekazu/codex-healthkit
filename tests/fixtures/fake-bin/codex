@@ -7,7 +7,7 @@ fi
 
 case "${1:-}" in
   --version)
-    printf 'codex-cli fake\n'
+    printf 'codex-cli %s\n' "${FAKE_CODEX_VERSION:-fake}"
     ;;
   doctor)
     if [ "${2:-}" = "--json" ]; then

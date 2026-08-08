@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ -n "${FAKE_CURL_LOG:-}" ]; then
+  printf '%s\n' "$*" >>"$FAKE_CURL_LOG"
+fi
+
+case "${FAKE_CURL_MODE:-success}" in
+  success)
+    printf '{"version":"%s"}\n' "${FAKE_LATEST_CODEX_VERSION:-0.148.0}"
+    ;;
+  invalid)
+    printf '{"version":"not-a-version"}\n'
+    ;;
+  failure)
+    exit 22
+    ;;
+  *)
+    exit 2
+    ;;
+esac

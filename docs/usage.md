@@ -97,6 +97,28 @@ codex --version
 
 Use it when an issue or debugging conversation needs the installed Codex CLI version.
 
+## Optional Stable Codex Version Check
+
+Run:
+
+```bash
+./bin/codex-healthkit check --json --check-latest-codex
+```
+
+This implies `--with-codex-version` and compares the installed version with the official npm `latest` dist-tag for `@openai/codex`. The result includes the resolved `executable_path`, so a different PATH entry is not mistaken for a failed or incomplete update.
+
+The request is deliberately bounded:
+
+- opt-in only; default checks remain local-only
+- one public HTTPS metadata request with a five-second timeout and no retry
+- `.curlrc` is disabled and no authorization, cookie, or token header is sent
+- response data is accepted only when `version` matches the expected semver shape
+- no install, update, cleanup, storage, or telemetry is performed
+- unavailable network, tools, or response data leaves `update_available` as `null`
+- failures do not change summary status or exit code
+
+Use the result as an update decision aid, not as an automatic update trigger.
+
 ## Optional Official Doctor Summary
 
 The default check does not execute the external `codex` command. Add the

@@ -4,6 +4,7 @@ set -euo pipefail
 VERSION="0.3.0"
 FORMAT="markdown"
 WITH_CODEX_VERSION=0
+CHECK_LATEST_CODEX=0
 WITH_CODEX_DOCTOR=0
 COMPARE_FILE=""
 COMPARE_REQUESTED=0
@@ -19,7 +20,7 @@ usage() {
 codex-healthkit - local metadata health checks for daily Codex operators
 
 Usage:
-  codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--with-codex-doctor]
+  codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--check-latest-codex] [--with-codex-doctor]
   codex-healthkit --version
   codex-healthkit --help
 
@@ -38,6 +39,9 @@ Optional:
      daily-normalized active sessions increase meets the explicit byte
      threshold. Requires --compare. Does not change summary status or exit code.
   --with-codex-version runs `codex --version`.
+  --check-latest-codex also checks the official npm stable dist-tag through an
+     HTTPS metadata request. It implies --with-codex-version, never installs or
+     updates Codex, and does not change summary status or exit code.
   --with-codex-doctor runs official `codex doctor --json` and extracts only
      redacted summary fields (status, ok/warn/fail counts, and a note). Raw
      doctor output is not included. Codex CLI may perform provider reachability
@@ -76,6 +80,149 @@ bool_json() {
     printf 'true'
   else
     printf 'false'
+  fi
+}
+
+nullable_bool_json() {
+  case "$1" in
+    1) printf 'true' ;;
+    0) printf 'false' ;;
+    *) printf 'null' ;;
+  esac
+}
+
+update_available_markdown() {
+  case "$1" in
+    1) printf 'yes' ;;
+    0) printf 'no' ;;
+    *) printf 'unavailable' ;;
+  esac
+}
+
+nullable_json_string() {
+  if [ -n "$1" ]; then
+    json_string "$1"
+  else
+    printf 'null'
+  fi
+}
+
+valid_semver() {
+  printf '%s' "$1" | LC_ALL=C grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'
+}
+
+semver_is_newer() {
+  local candidate="$1" current="$2"
+  local candidate_base current_base candidate_suffix current_suffix
+  local candidate_major candidate_minor candidate_patch
+  local current_major current_minor current_patch
+
+  candidate_base="${candidate%%-*}"
+  current_base="${current%%-*}"
+  candidate_suffix="${candidate#"$candidate_base"}"
+  current_suffix="${current#"$current_base"}"
+
+  IFS=. read -r candidate_major candidate_minor candidate_patch <<EOF
+$candidate_base
+EOF
+  IFS=. read -r current_major current_minor current_patch <<EOF
+$current_base
+EOF
+
+  if [ "$candidate_major" -ne "$current_major" ]; then
+    [ "$candidate_major" -gt "$current_major" ]
+    return
+  fi
+  if [ "$candidate_minor" -ne "$current_minor" ]; then
+    [ "$candidate_minor" -gt "$current_minor" ]
+    return
+  fi
+  if [ "$candidate_patch" -ne "$current_patch" ]; then
+    [ "$candidate_patch" -gt "$current_patch" ]
+    return
+  fi
+
+  [ -z "$candidate_suffix" ] && [ -n "$current_suffix" ]
+}
+
+codex_update_json_fragment() {
+  if [ "$LATEST_CODEX_REQUESTED" -ne 1 ]; then
+    return
+  fi
+
+  cat <<JSON
+,
+  "codex_update": {
+    "requested": true,
+    "checked": $(bool_json "$LATEST_CODEX_CHECKED"),
+    "executable_path": $(nullable_json_string "$CODEX_EXECUTABLE"),
+    "current_version": $(nullable_json_string "$CURRENT_CODEX_SEMVER"),
+    "latest_version": $(nullable_json_string "$LATEST_CODEX_VERSION"),
+    "update_available": $(nullable_bool_json "$CODEX_UPDATE_AVAILABLE"),
+    "source": "npm:@openai/codex dist-tag latest",
+    "checked_at": $(json_string "$GENERATED_AT"),
+    "note": $(json_string "$LATEST_CODEX_NOTE")
+  }
+JSON
+}
+
+run_codex_update_check() {
+  local response latest
+
+  LATEST_CODEX_REQUESTED="$CHECK_LATEST_CODEX"
+  LATEST_CODEX_CHECKED=0
+  CURRENT_CODEX_SEMVER=""
+  LATEST_CODEX_VERSION=""
+  CODEX_UPDATE_AVAILABLE=""
+  LATEST_CODEX_NOTE="not requested; pass --check-latest-codex for an opt-in stable version check"
+
+  if [ "$CHECK_LATEST_CODEX" -ne 1 ]; then
+    return
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    LATEST_CODEX_NOTE="curl is required for the opt-in stable version check"
+    return
+  fi
+  if ! command -v jq >/dev/null 2>&1; then
+    LATEST_CODEX_NOTE="jq is required to parse the opt-in stable version response"
+    return
+  fi
+
+  response="$(curl -q --proto '=https' --tlsv1.2 --max-time 5 --retry 0 --silent --show-error --fail \
+    --header 'Accept: application/json' \
+    'https://registry.npmjs.org/@openai%2Fcodex/latest' 2>/dev/null)" || {
+    LATEST_CODEX_NOTE="official npm stable version check failed; no update was performed"
+    return
+  }
+
+  latest="$(printf '%s' "$response" | jq -er '.version | select(type == "string")' 2>/dev/null)" || {
+    LATEST_CODEX_NOTE="official npm response did not contain a valid version; no update was performed"
+    return
+  }
+  if ! valid_semver "$latest"; then
+    LATEST_CODEX_NOTE="official npm response contained an invalid version; no update was performed"
+    return
+  fi
+
+  LATEST_CODEX_CHECKED=1
+  LATEST_CODEX_VERSION="$latest"
+  case "$CODEX_VERSION" in
+    'codex-cli '*) CURRENT_CODEX_SEMVER="${CODEX_VERSION#codex-cli }" ;;
+  esac
+
+  if ! valid_semver "$CURRENT_CODEX_SEMVER"; then
+    CURRENT_CODEX_SEMVER=""
+    LATEST_CODEX_NOTE="stable version checked, but the installed Codex version could not be compared"
+    return
+  fi
+
+  if semver_is_newer "$LATEST_CODEX_VERSION" "$CURRENT_CODEX_SEMVER"; then
+    CODEX_UPDATE_AVAILABLE=1
+    LATEST_CODEX_NOTE="a newer stable Codex CLI version is available; no update was performed"
+  else
+    CODEX_UPDATE_AVAILABLE=0
+    LATEST_CODEX_NOTE="installed Codex CLI is current relative to the stable npm dist-tag"
   fi
 }
 
@@ -604,6 +751,10 @@ while [ "$#" -gt 0 ]; do
     --with-codex-version)
       WITH_CODEX_VERSION=1
       ;;
+    --check-latest-codex)
+      CHECK_LATEST_CODEX=1
+      WITH_CODEX_VERSION=1
+      ;;
     --with-codex-doctor)
       WITH_CODEX_DOCTOR=1
       ;;
@@ -674,12 +825,22 @@ LOG_WAL="$SQLITE_HOME_DIR/logs_2.sqlite-wal"
 
 CODEX_FOUND=0
 CODEX_VERSION="not requested"
+CODEX_EXECUTABLE=""
 if command -v codex >/dev/null 2>&1; then
   CODEX_FOUND=1
+  CODEX_EXECUTABLE="$(command -v codex)"
   if [ "$WITH_CODEX_VERSION" -eq 1 ]; then
     CODEX_VERSION="$(codex --version 2>/dev/null || printf 'unknown')"
   fi
 fi
+
+LATEST_CODEX_REQUESTED=0
+LATEST_CODEX_CHECKED=0
+CURRENT_CODEX_SEMVER=""
+LATEST_CODEX_VERSION=""
+CODEX_UPDATE_AVAILABLE=""
+LATEST_CODEX_NOTE=""
+run_codex_update_check
 
 SESSIONS_EXISTS="$(path_exists_bool "$SESSIONS_DIR")"
 ARCHIVED_EXISTS="$(path_exists_bool "$ARCHIVED_DIR")"
@@ -764,7 +925,7 @@ if [ "$FORMAT" = "json" ]; then
   "codex_cli": {
     "found": $(bool_json "$CODEX_FOUND"),
     "version": $(json_string "$CODEX_VERSION")
-  },
+  }$(codex_update_json_fragment),
   "state": {
     "sessions": {
       "exists": $(bool_json "$SESSIONS_EXISTS"),
@@ -838,6 +999,25 @@ Generated: $GENERATED_AT
 - found: \`$(if [ "$CODEX_FOUND" = "1" ]; then printf 'yes'; else printf 'no'; fi)\`
 - version: \`$(markdown_inline "$CODEX_VERSION")\`
 - version_requested: \`$(if [ "$WITH_CODEX_VERSION" = "1" ]; then printf 'yes'; else printf 'no'; fi)\`
+MARKDOWN
+
+if [ "$LATEST_CODEX_REQUESTED" -eq 1 ]; then
+  cat <<MARKDOWN
+
+## Codex Stable Version Check
+
+- requested: \`yes\`
+- checked: \`$(if [ "$LATEST_CODEX_CHECKED" = "1" ]; then printf 'yes'; else printf 'no'; fi)\`
+- executable_path: \`$(if [ -n "$CODEX_EXECUTABLE" ]; then markdown_inline "$CODEX_EXECUTABLE"; else printf 'unavailable'; fi)\`
+- current_version: \`$(if [ -n "$CURRENT_CODEX_SEMVER" ]; then markdown_inline "$CURRENT_CODEX_SEMVER"; else printf 'unavailable'; fi)\`
+- latest_version: \`$(if [ -n "$LATEST_CODEX_VERSION" ]; then markdown_inline "$LATEST_CODEX_VERSION"; else printf 'unavailable'; fi)\`
+- update_available: \`$(update_available_markdown "$CODEX_UPDATE_AVAILABLE")\`
+- source: \`npm:@openai/codex dist-tag latest\`
+- note: $(markdown_inline "$LATEST_CODEX_NOTE")
+MARKDOWN
+fi
+
+cat <<MARKDOWN
 
 ## Local State Metadata
 
