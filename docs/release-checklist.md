@@ -65,6 +65,17 @@ Each item above needs a separate safety and release review.
 
 ## Release Gate Log
 
+### `v0.4.0` - 2026-08-09
+
+- [x] Updated `CHANGELOG.md` and the CLI version.
+- [x] Confirmed `README.md` and `README.ja.md` match current behavior.
+- [x] Confirmed `SECURITY.md` reporting path is current.
+- [x] Ran local Bash syntax, ShellCheck, tests, actionlint, and gitleaks.
+- [ ] Ran Linux and macOS checks in GitHub Actions.
+- [ ] Confirmed the release-candidate commit is in English.
+- [ ] Reviewed normal-release notes before creating the tag and GitHub Release.
+- [ ] Verified the published tag, anonymous clone, and public Release URLs.
+
 ### `v0.3.0` - 2026-08-02
 
 - [x] Updated `CHANGELOG.md` and the CLI version.

@@ -23,7 +23,7 @@ symlink_home="$(mktemp -d)"
 FAKE_CURL_LOG="$ROOT_DIR/tests/fixtures/fake-curl.log"
 trap 'rm -f "$markdown_report" "$json_report" "$invalid_doctor_report" "$valid_doctor_report" "$compare_previous_report" "$compare_json_report" "$compare_markdown_report" "$advisory_previous_report" "$advisory_json_report" "$default_summary_report" "$update_json_report" "$update_markdown_report" "$FAKE_CODEX_LOG" "$FAKE_CURL_LOG"; rm -rf "$symlink_home"' EXIT
 
-test "$("$ROOT_DIR/bin/codex-healthkit" --version)" = "codex-healthkit 0.3.0"
+test "$("$ROOT_DIR/bin/codex-healthkit" --version)" = "codex-healthkit 0.4.0"
 
 CODEX_HOME="$FIXTURE_HOME" CODEX_SQLITE_HOME="$FIXTURE_HOME" \
   "$ROOT_DIR/bin/codex-healthkit" check >"$markdown_report"
