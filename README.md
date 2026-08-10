@@ -67,7 +67,7 @@ Heavy Codex users often need to answer simple operational questions:
 
 ## Status
 
-Source-only CLI. Latest tagged release: `v0.3.0`.
+Source-only CLI. Latest tagged release: `v0.4.0`.
 
 The release remains intentionally narrow and read-only. For a stable daily
 command, install an explicit tag rather than linking to a development checkout.
@@ -123,7 +123,7 @@ point a `current` symlink at the selected release. This keeps normal use separat
 from development branches and makes rollback a symlink change.
 
 ```bash
-VERSION=v0.3.0
+VERSION=v0.4.0
 INSTALL_ROOT="$HOME/.local/opt/codex-healthkit"
 
 mkdir -p "$INSTALL_ROOT"
@@ -154,7 +154,7 @@ To roll back, point `current` at a previously installed tag. The command symlink
 does not need to change:
 
 ```bash
-PREVIOUS_VERSION=v0.2.0
+PREVIOUS_VERSION=v0.3.0
 ln -sfn "$INSTALL_ROOT/$PREVIOUS_VERSION" "$INSTALL_ROOT/current"
 codex-healthkit --version
 codex-healthkit check --json | jq -e '.safety | all(.[]; . == false)'
