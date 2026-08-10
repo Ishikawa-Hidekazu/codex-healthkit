@@ -75,7 +75,7 @@ Each item above needs a separate safety and release review.
 - [x] Ran Linux and macOS checks in GitHub Actions.
 - [x] Confirmed the release-candidate commits are in English.
 - [x] Reviewed normal-release notes before creating the tag and GitHub Release.
-- [ ] Verified the published tag, anonymous clone, and public Release URLs.
+- [x] Verified the published annotated tag, anonymous clone, stable local install, and [public Release URLs](https://github.com/Ishikawa-Hidekazu/codex-healthkit/releases/tag/v0.4.0).
 
 ### `v0.3.0` - 2026-08-02
 
