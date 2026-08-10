@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple pre-1.0 changelog style. Dates use UTC.
 
-## 0.4.0 - 2026-08-09
+## 0.4.0 - 2026-08-11
 
 - Add an opt-in stable Codex CLI version check against the official npm `latest` dist-tag, including the resolved executable path.
 - Keep the default check offline and preserve summary status, exit codes, and update behavior.
