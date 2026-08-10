@@ -24,6 +24,14 @@ Run:
 
 Use JSON when you want to compare reports over time or feed the output into another local script.
 
+The `sessions` and `archived_sessions` objects expose two counts:
+
+- `jsonl_count` preserves the existing count of uncompressed `*.jsonl` files.
+- `session_file_count` counts recognized `*.jsonl` and `*.jsonl.zst` session files.
+
+Both values use filename suffix metadata only. The command does not open,
+decompress, or parse any session file, and unrelated files are excluded.
+
 Validate JSON:
 
 ```bash

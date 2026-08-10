@@ -20,8 +20,10 @@ default_summary_report="$(mktemp)"
 update_json_report="$(mktemp)"
 update_markdown_report="$(mktemp)"
 symlink_home="$(mktemp -d)"
+session_count_home="$(mktemp -d)"
+session_count_report="$(mktemp)"
 FAKE_CURL_LOG="$ROOT_DIR/tests/fixtures/fake-curl.log"
-trap 'rm -f "$markdown_report" "$json_report" "$invalid_doctor_report" "$valid_doctor_report" "$compare_previous_report" "$compare_json_report" "$compare_markdown_report" "$advisory_previous_report" "$advisory_json_report" "$default_summary_report" "$update_json_report" "$update_markdown_report" "$FAKE_CODEX_LOG" "$FAKE_CURL_LOG"; rm -rf "$symlink_home"' EXIT
+trap 'rm -f "$markdown_report" "$json_report" "$invalid_doctor_report" "$valid_doctor_report" "$compare_previous_report" "$compare_json_report" "$compare_markdown_report" "$advisory_previous_report" "$advisory_json_report" "$default_summary_report" "$update_json_report" "$update_markdown_report" "$session_count_report" "$FAKE_CODEX_LOG" "$FAKE_CURL_LOG"; rm -rf "$symlink_home" "$session_count_home"' EXIT
 
 test "$("$ROOT_DIR/bin/codex-healthkit" --version)" = "codex-healthkit 0.4.0"
 
@@ -51,6 +53,7 @@ grep -q '"auth_files_read": false' "$json_report"
 if command -v jq >/dev/null 2>&1; then
   jq empty "$json_report"
   jq -e 'has("codex_update") | not' "$json_report" >/dev/null
+  jq -e '.state.sessions.session_file_count == .state.sessions.jsonl_count' "$json_report" >/dev/null
   current_sessions_bytes="$(jq -r '.state.sessions.bytes' "$json_report")"
   previous_growth_bytes=1024
   expected_daily_growth=$(((current_sessions_bytes - previous_growth_bytes) * 2))
@@ -190,6 +193,25 @@ if command -v jq >/dev/null 2>&1; then
   jq empty "$ROOT_DIR/schemas/comparison-v0.2.schema.json"
 fi
 
+mkdir -p "$session_count_home/sessions" "$session_count_home/archived_sessions"
+: >"$session_count_home/sessions/current.jsonl"
+: >"$session_count_home/sessions/current.jsonl.zst"
+: >"$session_count_home/sessions/ignored.txt"
+: >"$session_count_home/archived_sessions/archived.jsonl"
+: >"$session_count_home/archived_sessions/archived.jsonl.zst"
+: >"$session_count_home/archived_sessions/ignored.gz"
+CODEX_HOME="$session_count_home" CODEX_SQLITE_HOME="$session_count_home" \
+  "$ROOT_DIR/bin/codex-healthkit" check --json >"$session_count_report"
+
+if command -v jq >/dev/null 2>&1; then
+  jq -e '
+    .state.sessions.jsonl_count == 1 and
+    .state.sessions.session_file_count == 2 and
+    .state.archived_sessions.jsonl_count == 1 and
+    .state.archived_sessions.session_file_count == 2
+  ' "$session_count_report" >/dev/null
+fi
+
 rm -f "$FAKE_CURL_LOG"
 PATH="$FAKE_BIN:$PATH" FAKE_CODEX_VERSION=0.147.0 FAKE_LATEST_CODEX_VERSION=0.148.0 \
   FAKE_CURL_LOG="$FAKE_CURL_LOG" CODEX_HOME="$FIXTURE_HOME" CODEX_SQLITE_HOME="$FIXTURE_HOME" \
@@ -287,7 +309,14 @@ CODEX_HOME="$symlink_home" CODEX_SQLITE_HOME="$symlink_home" \
   "$ROOT_DIR/bin/codex-healthkit" check --json >"$json_report"
 
 if command -v jq >/dev/null 2>&1; then
-  jq -e '.state.sessions.exists == false and .state.sessions.jsonl_count == 0' "$json_report" >/dev/null
+  jq -e '
+    .state.sessions.exists == false and
+    .state.sessions.jsonl_count == 0 and
+    .state.sessions.session_file_count == 0 and
+    .state.archived_sessions.exists == false and
+    .state.archived_sessions.jsonl_count == 0 and
+    .state.archived_sessions.session_file_count == 0
+  ' "$json_report" >/dev/null
 fi
 
 if command -v shellcheck >/dev/null 2>&1; then

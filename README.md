@@ -289,8 +289,8 @@ Short example:
 - summary: ok
 - codex command found: yes
 - codex version: not requested
-- sessions: 42 files, 18M
-- archived sessions: 7 files, 2.1M
+- sessions: 40 JSONL / 42 recognized session files, 18M
+- archived sessions: 3 JSONL / 7 recognized session files, 2.1M
 - SQLite WAL: 0B
 - auth files read: no
 - session transcript contents read: no
@@ -321,7 +321,7 @@ For more examples, see [docs/usage.md](docs/usage.md) and [docs/faq.md](docs/faq
 - session transcript contents
 - account IDs or email addresses
 
-`codex-healthkit` counts `.jsonl` files under the sessions directories, but raw file names are not reported.
+`codex-healthkit` preserves the existing `.jsonl` count and separately counts recognized `.jsonl` and `.jsonl.zst` session files. It uses suffix metadata only; raw file names and transcript contents are not reported.
 
 Reports are intended to be safe to paste into an issue after review, but users should still check them before sharing.
 

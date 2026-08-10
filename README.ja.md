@@ -251,8 +251,8 @@ codex doctor --json
 - summary: ok
 - codex command found: yes
 - codex version: not requested
-- sessions: 42 files, 18M
-- archived sessions: 7 files, 2.1M
+- sessions: 40 JSONL / 42 recognized session files, 18M
+- archived sessions: 3 JSONL / 7 recognized session files, 2.1M
 - SQLite WAL: 0B
 - auth files read: no
 - session transcript contents read: no
@@ -283,7 +283,7 @@ codex doctor --json
 - session transcript contents
 - account IDs or email addresses
 
-`codex-healthkit` はsessions配下の `.jsonl` ファイル数を数えますが、rawのファイル名はレポートしません。
+`codex-healthkit` は既存の `.jsonl` 数を維持し、認識対象の `.jsonl` と `.jsonl.zst` のsession file数を別に数えます。拡張子metadataだけを使い、rawのファイル名とtranscript本文はレポートしません。
 
 レポートは確認後にissueへ貼りやすい形を目指していますが、共有前にはユーザー自身で必ず確認してください。
 
