@@ -65,6 +65,23 @@ Each item above needs a separate safety and release review.
 
 ## Release Gate Log
 
+### `v0.4.1` candidate - unreleased
+
+Scope:
+
+- Include the post-`v0.4.0` compressed session file count without changing the existing `jsonl_count` field.
+- Add report-to-decision guidance without cleanup, deletion, checkpoint, daemon, or telemetry behavior.
+- Keep the release source-only and preserve default JSON compatibility apart from the additive `session_file_count` field already merged to `main`.
+
+Gate:
+
+- [ ] Confirm the final release commit contains the same tree tested from the candidate branch.
+- [ ] Confirm `README.md`, `README.ja.md`, `CHANGELOG.md`, CLI version, tag, and release notes agree on `v0.4.1`.
+- [ ] Run Bash syntax, ShellCheck, tests, actionlint, gitleaks, Linux CI, and macOS CI.
+- [ ] Verify an anonymous tagged clone and isolated tag-pinned install.
+- [ ] Confirm default mode still reads no credentials, tokens, cookies, SQLite contents, or transcript contents.
+- [ ] Obtain the explicit tag / GitHub Release gate before publishing.
+
 ### `v0.4.0` - 2026-08-11
 
 - [x] Updated `CHANGELOG.md` and the CLI version.
