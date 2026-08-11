@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple pre-1.0 changelog style. Dates use UTC.
 
-## 0.4.0 - 2026-08-11
+## Unreleased
 
 - Add a separate metadata-only session file count for recognized `.jsonl` and `.jsonl.zst` files while preserving `jsonl_count` compatibility.
+- Add an English and Japanese report-to-decision guide that explicitly avoids cleanup or live SQLite sidecar deletion advice.
+
+## 0.4.0 - 2026-08-11
+
 - Add an opt-in stable Codex CLI version check against the official npm `latest` dist-tag, including the resolved executable path.
 - Keep the default check offline and preserve summary status, exit codes, and update behavior.
 - Report version-check failures as metadata only and never install or update Codex automatically.

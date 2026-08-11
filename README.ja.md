@@ -90,6 +90,20 @@ issueを開く前、ローカル状態を時系列で見たいとき、他の開
 2. **日々の運用点検:** active sessions、archived sessions、quarantine、SQLite filesが増えていないかを確認し、詳細調査が必要か判断します。
 3. **support requestの準備:** 小さなreportを作り、自分で確認したうえで、issueに関係するredacted metadataだけを共有します。
 
+## レポートから次の判断へ
+
+このレポートは次の確認に使う根拠であり、local stateの削除指示ではありません。
+
+| 表示 | 意味 | 安全な次の確認 |
+| --- | --- | --- |
+| `session_file_count`が`jsonl_count`より多い | 非圧縮`.jsonl`に加えて、認識対象の圧縮済み`.jsonl.zst`があります | directoryのbyte sizeと明示的なbefore/after比較を使います。件数だけでsession消失や重複とは判断しません |
+| session bytesまたはfile countが増えた | 前回reportからlocal session storageが変化しました | 自分で保存したreport 1件と比較し、通常作業量に合う増加かを判断します |
+| `logs_2.sqlite-wal`が増えた、またはsummaryが`watch` | size-onlyの閾値により、追加確認が必要です | reportを保存し、必要に応じてCodexを通常終了・再起動した後に再確認します。このreportだけを根拠に使用中のSQLite sidecarを削除しません |
+| 他の人へ相談したい | 内容を出さずに規模をmetadataで説明できます | 自分でreportを確認し、issueに必要なfieldだけを共有します |
+
+`codex-healthkit`は、archiveまたはdeleteするsessionを決めません。SQLiteの
+checkpoint、directory cleanup、内容に基づく原因診断も行いません。
+
 ## よく使うコマンド
 
 JSON health report:
@@ -140,8 +154,8 @@ cloneしたsource directoryが不要なら、別途削除します。
 デフォルトの `codex-healthkit check` は、次を確認します。
 
 - `codex` コマンドが存在するか。デフォルトでは実行しません
-- active session directory のサイズと `.jsonl` 数
-- archived session directory のサイズと `.jsonl` 数
+- active session directoryのサイズ、非圧縮`.jsonl`数、認識対象`.jsonl` / `.jsonl.zst`のsession file数
+- archived session directoryのサイズ、非圧縮`.jsonl`数、認識対象`.jsonl` / `.jsonl.zst`のsession file数
 - quarantine directory のサイズ
 - `logs_2.sqlite`, `logs_2.sqlite-shm`, `logs_2.sqlite-wal` のファイルサイズ
 - サイズだけを見た `ok` / `watch` の簡易サマリー

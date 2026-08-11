@@ -91,6 +91,21 @@ It is especially useful before opening an issue, comparing local state over time
 2. **Daily operational review:** notice whether active sessions, archived sessions, quarantine, or SQLite files are growing before deciding whether deeper investigation is needed.
 3. **Preparing a support request:** generate a small report, review it yourself, and share only the redacted metadata that is relevant to the issue.
 
+## From Report To Decision
+
+The report is evidence for the next check, not an instruction to delete local
+state.
+
+| What you see | What it means | Safe next step |
+| --- | --- | --- |
+| `session_file_count` is higher than `jsonl_count` | Recognized compressed `.jsonl.zst` session files are present in addition to uncompressed `.jsonl` files | Use the directory byte size and an explicit before/after comparison; do not infer lost or duplicate sessions from the count alone |
+| Session bytes or file counts increased | Local session storage changed since the previous report | Compare against one report you deliberately saved and decide whether the growth matches normal work |
+| `logs_2.sqlite-wal` grew or the summary says `watch` | A size-only threshold deserves another look | Save the report, finish or restart Codex normally if appropriate, and check again; never delete a live SQLite sidecar based only on this report |
+| You need help from another person | The metadata can describe scale without exposing contents | Review the report yourself and share only the fields relevant to the issue |
+
+`codex-healthkit` does not determine which session to archive or delete. It does
+not checkpoint SQLite, clean directories, or diagnose content-level causes.
+
 ## Common Commands
 
 JSON health report:
@@ -178,8 +193,8 @@ installed release.
 By default, `codex-healthkit check` reports:
 
 - whether the `codex` command is available, without executing it
-- active session directory size and `.jsonl` count
-- archived session directory size and `.jsonl` count
+- active session directory size, uncompressed `.jsonl` count, and recognized `.jsonl` / `.jsonl.zst` session file count
+- archived session directory size, uncompressed `.jsonl` count, and recognized `.jsonl` / `.jsonl.zst` session file count
 - quarantine directory size
 - `logs_2.sqlite`, `logs_2.sqlite-shm`, and `logs_2.sqlite-wal` file sizes
 - a small `ok` / `watch` summary based on size-only checks
