@@ -281,6 +281,16 @@ count_jsonl_files() {
   { find "$path" -type f -name '*.jsonl' -print 2>/dev/null || true; } | wc -l | tr -d '[:space:]'
 }
 
+count_session_files() {
+  local path="$1"
+  if [ ! -d "$path" ] || [ -L "$path" ]; then
+    printf '0'
+    return
+  fi
+
+  { find "$path" -type f \( -name '*.jsonl' -o -name '*.jsonl.zst' \) -print 2>/dev/null || true; } | wc -l | tr -d '[:space:]'
+}
+
 path_exists_bool() {
   local path="$1"
   if [ -e "$path" ] && [ ! -L "$path" ]; then
@@ -865,6 +875,8 @@ LOG_WAL_BYTES="$(bytes_for "$LOG_WAL")"
 
 SESSIONS_COUNT="$(count_jsonl_files "$SESSIONS_DIR")"
 ARCHIVED_COUNT="$(count_jsonl_files "$ARCHIVED_DIR")"
+SESSIONS_FILE_COUNT="$(count_session_files "$SESSIONS_DIR")"
+ARCHIVED_FILE_COUNT="$(count_session_files "$ARCHIVED_DIR")"
 
 OVERALL_STATUS="$(overall_status_for "$LOG_DB_BYTES" "$LOG_WAL_BYTES")"
 SQLITE_NOTE="$(health_note "$LOG_DB_BYTES" "$LOG_WAL_BYTES")"
@@ -931,13 +943,15 @@ if [ "$FORMAT" = "json" ]; then
       "exists": $(bool_json "$SESSIONS_EXISTS"),
       "bytes": $SESSIONS_BYTES,
       "size": $(json_string "$SESSIONS_SIZE"),
-      "jsonl_count": $SESSIONS_COUNT
+      "jsonl_count": $SESSIONS_COUNT,
+      "session_file_count": $SESSIONS_FILE_COUNT
     },
     "archived_sessions": {
       "exists": $(bool_json "$ARCHIVED_EXISTS"),
       "bytes": $ARCHIVED_BYTES,
       "size": $(json_string "$ARCHIVED_SIZE"),
-      "jsonl_count": $ARCHIVED_COUNT
+      "jsonl_count": $ARCHIVED_COUNT,
+      "session_file_count": $ARCHIVED_FILE_COUNT
     },
     "quarantine": {
       "exists": $(bool_json "$QUARANTINE_EXISTS"),
@@ -1023,8 +1037,8 @@ cat <<MARKDOWN
 
 | item | exists | bytes | size | count | note |
 |---|---:|---:|---:|---:|---|
-| active sessions | $(if [ "$SESSIONS_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $SESSIONS_BYTES | $SESSIONS_SIZE | $SESSIONS_COUNT | file count only; transcript contents not read |
-| archived sessions | $(if [ "$ARCHIVED_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $ARCHIVED_BYTES | $ARCHIVED_SIZE | $ARCHIVED_COUNT | review before deleting |
+| active sessions | $(if [ "$SESSIONS_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $SESSIONS_BYTES | $SESSIONS_SIZE | $SESSIONS_COUNT JSONL / $SESSIONS_FILE_COUNT session files | suffix count only; transcript contents not read |
+| archived sessions | $(if [ "$ARCHIVED_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $ARCHIVED_BYTES | $ARCHIVED_SIZE | $ARCHIVED_COUNT JSONL / $ARCHIVED_FILE_COUNT session files | includes recognized compressed session files; review before deleting |
 | quarantine | $(if [ "$QUARANTINE_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $QUARANTINE_BYTES | $QUARANTINE_SIZE | - | metadata only |
 | logs_2.sqlite | $(if [ "$LOG_DB_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $LOG_DB_BYTES | $LOG_DB_SIZE | - | size only; SQLite contents not read |
 | logs_2.sqlite-shm | $(if [ "$LOG_SHM_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $LOG_SHM_BYTES | $LOG_SHM_SIZE | - | size only |

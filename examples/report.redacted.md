@@ -18,8 +18,8 @@ Generated: 2026-07-05T00:00:00Z
 
 | item | exists | bytes | size | count | note |
 |---|---:|---:|---:|---:|---|
-| active sessions | yes | 12345 | 12K | 2 | file count only; transcript contents not read |
-| archived sessions | no | 0 | 0B | 0 | review before deleting |
+| active sessions | yes | 12345 | 12K | 2 JSONL / 3 session files | suffix count only; transcript contents not read |
+| archived sessions | no | 0 | 0B | 0 JSONL / 0 session files | includes recognized compressed session files; review before deleting |
 | quarantine | no | 0 | 0B | - | metadata only |
 | logs_2.sqlite | yes | 4096 | 4.0K | - | size only; SQLite contents not read |
 | logs_2.sqlite-shm | no | 0 | 0B | - | size only |
