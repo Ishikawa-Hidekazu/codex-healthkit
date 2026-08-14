@@ -205,7 +205,7 @@ It also does not execute the external `codex` command by default.
 ## Options
 
 ```text
-codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--check-latest-codex] [--with-codex-doctor]
+codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--check-latest-codex] [--with-codex-doctor] [--with-computer-history]
 codex-healthkit --version
 codex-healthkit --help
 ```
@@ -291,6 +291,19 @@ Important:
 - raw `codex doctor` output is not included in the report
 - session transcript contents and SQLite contents are not read
 - this option does not add cleanup, delete, or usage-dashboard behavior
+
+### `--with-computer-history`
+
+Reports metadata for the documented local Computer History memory directory:
+
+```bash
+codex-healthkit check --json --with-computer-history
+```
+
+The report includes only directory existence, total size, and the number of
+Markdown files. It does not read memory contents or interaction events, list
+file names, enable Computer History, or change its settings. The option is off
+by default.
 
 ## Example Output
 
