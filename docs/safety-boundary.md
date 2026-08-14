@@ -91,6 +91,19 @@ The advisory:
 - does not change the normal summary status or exit code
 - does not store history, delete sessions, or perform cleanup
 
+## Optional Computer History Metadata
+
+Command:
+
+```bash
+codex-healthkit check --with-computer-history
+```
+
+This option may inspect metadata for the documented local Computer History memory
+directory. It may report directory existence, total bytes, a human-readable size,
+and the count of `*.md` files. It must not open memory files, read interaction
+events, report file names, or inspect the ChatGPT app-group event store.
+
 ## Sharing Reports
 
 Reports are intended to be safe to paste into an issue after review, but users should still check them before sharing.

@@ -6,6 +6,7 @@ This project follows a simple pre-1.0 changelog style. Dates use UTC.
 
 ## Unreleased
 
+- Add an opt-in metadata-only check for local Computer History memory size and Markdown file count without reading memory contents or interaction events.
 - Add a separate metadata-only session file count for recognized `.jsonl` and `.jsonl.zst` files while preserving `jsonl_count` compatibility.
 - Add an English and Japanese report-to-decision guide that explicitly avoids cleanup or live SQLite sidecar deletion advice.
 

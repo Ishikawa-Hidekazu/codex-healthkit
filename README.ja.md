@@ -166,7 +166,7 @@ SQLiteデータベースやsession transcriptの中身は開きません。
 ## オプション
 
 ```text
-codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--check-latest-codex] [--with-codex-doctor]
+codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--check-latest-codex] [--with-codex-doctor] [--with-computer-history]
 codex-healthkit --version
 codex-healthkit --help
 ```
@@ -252,6 +252,17 @@ codex doctor --json
 - rawの `codex doctor` 出力はレポートに含めません
 - session transcript本文とSQLite本文は読みません
 - cleanup、delete、usage dashboard機能は追加しません
+
+### `--with-computer-history`
+
+公式documentに記載されたComputer Historyのlocal memory directoryについて、metadataだけを確認します。
+
+```bash
+codex-healthkit check --json --with-computer-history
+```
+
+reportするのはdirectoryの存在、合計size、Markdown file数だけです。memory本文やinteraction eventを
+読まず、file名も列挙せず、Computer Historyの有効化や設定変更も行いません。defaultでは無効です。
 
 ## 出力例
 

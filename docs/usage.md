@@ -155,6 +155,21 @@ Important:
 - session transcript contents and SQLite contents are not read
 - no cleanup, delete, or usage-dashboard behavior is added
 
+## Optional Computer History Memory Metadata
+
+Run:
+
+```bash
+./bin/codex-healthkit check --json --with-computer-history
+```
+
+This checks only `$CODEX_HOME/memories/extensions/skysight/`, the documented local
+memory location for Computer History. It reports whether the directory exists,
+its total size, and the number of Markdown files. It does not open memory files,
+read interaction events, list file names, enable Computer History, or change its
+permissions. The option is disabled by default because the feature may not be
+available or enabled for every user.
+
 ## Interpreting Summary Status
 
 `ok` means no large local SQLite/WAL spike was detected by the size-only check.

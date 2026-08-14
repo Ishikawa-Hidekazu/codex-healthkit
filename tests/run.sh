@@ -22,8 +22,10 @@ update_markdown_report="$(mktemp)"
 symlink_home="$(mktemp -d)"
 session_count_home="$(mktemp -d)"
 session_count_report="$(mktemp)"
+computer_history_home="$(mktemp -d)"
+computer_history_report="$(mktemp)"
 FAKE_CURL_LOG="$ROOT_DIR/tests/fixtures/fake-curl.log"
-trap 'rm -f "$markdown_report" "$json_report" "$invalid_doctor_report" "$valid_doctor_report" "$compare_previous_report" "$compare_json_report" "$compare_markdown_report" "$advisory_previous_report" "$advisory_json_report" "$default_summary_report" "$update_json_report" "$update_markdown_report" "$session_count_report" "$FAKE_CODEX_LOG" "$FAKE_CURL_LOG"; rm -rf "$symlink_home" "$session_count_home"' EXIT
+trap 'rm -f "$markdown_report" "$json_report" "$invalid_doctor_report" "$valid_doctor_report" "$compare_previous_report" "$compare_json_report" "$compare_markdown_report" "$advisory_previous_report" "$advisory_json_report" "$default_summary_report" "$update_json_report" "$update_markdown_report" "$session_count_report" "$computer_history_report" "$FAKE_CODEX_LOG" "$FAKE_CURL_LOG"; rm -rf "$symlink_home" "$session_count_home" "$computer_history_home"' EXIT
 
 test "$("$ROOT_DIR/bin/codex-healthkit" --version)" = "codex-healthkit 0.4.0"
 
@@ -53,6 +55,7 @@ grep -q '"auth_files_read": false' "$json_report"
 if command -v jq >/dev/null 2>&1; then
   jq empty "$json_report"
   jq -e 'has("codex_update") | not' "$json_report" >/dev/null
+  jq -e '.state | has("computer_history") | not' "$json_report" >/dev/null
   jq -e '.state.sessions.session_file_count == .state.sessions.jsonl_count' "$json_report" >/dev/null
   current_sessions_bytes="$(jq -r '.state.sessions.bytes' "$json_report")"
   previous_growth_bytes=1024
@@ -191,6 +194,26 @@ if command -v jq >/dev/null 2>&1; then
   grep -q '"large_total"' "$compare_markdown_report"
 
   jq empty "$ROOT_DIR/schemas/comparison-v0.2.schema.json"
+fi
+
+mkdir -p "$computer_history_home/memories/extensions/skysight/day"
+: >"$computer_history_home/memories/extensions/skysight/first.md"
+: >"$computer_history_home/memories/extensions/skysight/day/second.md"
+: >"$computer_history_home/memories/extensions/skysight/day/ignored.txt"
+CODEX_HOME="$computer_history_home" CODEX_SQLITE_HOME="$computer_history_home" \
+  "$ROOT_DIR/bin/codex-healthkit" check --json --with-computer-history >"$computer_history_report"
+
+if command -v jq >/dev/null 2>&1; then
+  jq -e '
+    .state.computer_history.requested == true and
+    .state.computer_history.memory_dir_exists == true and
+    .state.computer_history.markdown_file_count == 2 and
+    .state.computer_history.contents_read == false and
+    (.state.computer_history.note | contains("interaction events not read"))
+  ' "$computer_history_report" >/dev/null
+fi
+if grep -q 'first.md\|second.md\|ignored.txt' "$computer_history_report"; then
+  exit 1
 fi
 
 mkdir -p "$session_count_home/sessions" "$session_count_home/archived_sessions"

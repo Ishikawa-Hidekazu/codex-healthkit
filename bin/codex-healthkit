@@ -6,6 +6,7 @@ FORMAT="markdown"
 WITH_CODEX_VERSION=0
 CHECK_LATEST_CODEX=0
 WITH_CODEX_DOCTOR=0
+WITH_COMPUTER_HISTORY=0
 COMPARE_FILE=""
 COMPARE_REQUESTED=0
 COMPARE_LOADED=0
@@ -20,7 +21,7 @@ usage() {
 codex-healthkit - local metadata health checks for daily Codex operators
 
 Usage:
-  codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--check-latest-codex] [--with-codex-doctor]
+  codex-healthkit check [--markdown|--json] [--compare <previous-report.json>] [--sessions-total-advisory-bytes <bytes>] [--sessions-daily-growth-advisory-bytes <bytes>] [--with-codex-version] [--check-latest-codex] [--with-codex-doctor] [--with-computer-history]
   codex-healthkit --version
   codex-healthkit --help
 
@@ -46,6 +47,8 @@ Optional:
      redacted summary fields (status, ok/warn/fail counts, and a note). Raw
      doctor output is not included. Codex CLI may perform provider reachability
      checks through the existing Codex configuration when this option is enabled.
+  --with-computer-history reports only the existence, total size, and Markdown
+     file count of local Computer History memories. It does not read memory files.
 USAGE
 }
 
@@ -289,6 +292,54 @@ count_session_files() {
   fi
 
   { find "$path" -type f \( -name '*.jsonl' -o -name '*.jsonl.zst' \) -print 2>/dev/null || true; } | wc -l | tr -d '[:space:]'
+}
+
+count_markdown_files() {
+  local path="$1"
+  if [ ! -d "$path" ] || [ -L "$path" ]; then
+    printf '0'
+    return
+  fi
+
+  { find "$path" -type f -name '*.md' -print 2>/dev/null || true; } | wc -l | tr -d '[:space:]'
+}
+
+computer_history_json_fragment() {
+  if [ "$WITH_COMPUTER_HISTORY" -ne 1 ]; then
+    return
+  fi
+
+  cat <<JSON
+,
+    "computer_history": {
+      "requested": true,
+      "memory_dir_exists": $(bool_json "$COMPUTER_HISTORY_EXISTS"),
+      "bytes": $COMPUTER_HISTORY_BYTES,
+      "size": $(json_string "$COMPUTER_HISTORY_SIZE"),
+      "markdown_file_count": $COMPUTER_HISTORY_MARKDOWN_COUNT,
+      "contents_read": false,
+      "note": "local memory metadata only; memory contents and interaction events not read"
+    }
+JSON
+}
+
+computer_history_markdown() {
+  if [ "$WITH_COMPUTER_HISTORY" -ne 1 ]; then
+    return
+  fi
+
+  cat <<MARKDOWN
+
+## Computer History Memory Metadata
+
+- requested: \`yes\`
+- memory directory exists: \`$(if [ "$COMPUTER_HISTORY_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi)\`
+- bytes: \`$COMPUTER_HISTORY_BYTES\`
+- size: \`$COMPUTER_HISTORY_SIZE\`
+- Markdown files: \`$COMPUTER_HISTORY_MARKDOWN_COUNT\`
+- memory contents read: \`no\`
+- interaction events read: \`no\`
+MARKDOWN
 }
 
 path_exists_bool() {
@@ -768,6 +819,9 @@ while [ "$#" -gt 0 ]; do
     --with-codex-doctor)
       WITH_CODEX_DOCTOR=1
       ;;
+    --with-computer-history)
+      WITH_COMPUTER_HISTORY=1
+      ;;
     --compare)
       shift
       [ "$#" -gt 0 ] || die "--compare requires a previous report path"
@@ -832,6 +886,7 @@ QUARANTINE_DIR="$CODEX_HOME_DIR/quarantine"
 LOG_DB="$SQLITE_HOME_DIR/logs_2.sqlite"
 LOG_SHM="$SQLITE_HOME_DIR/logs_2.sqlite-shm"
 LOG_WAL="$SQLITE_HOME_DIR/logs_2.sqlite-wal"
+COMPUTER_HISTORY_DIR="$CODEX_HOME_DIR/memories/extensions/skysight"
 
 CODEX_FOUND=0
 CODEX_VERSION="not requested"
@@ -872,6 +927,17 @@ QUARANTINE_BYTES="$(tree_bytes_for "$QUARANTINE_DIR")"
 LOG_DB_BYTES="$(bytes_for "$LOG_DB")"
 LOG_SHM_BYTES="$(bytes_for "$LOG_SHM")"
 LOG_WAL_BYTES="$(bytes_for "$LOG_WAL")"
+
+COMPUTER_HISTORY_EXISTS=0
+COMPUTER_HISTORY_SIZE="0B"
+COMPUTER_HISTORY_BYTES=0
+COMPUTER_HISTORY_MARKDOWN_COUNT=0
+if [ "$WITH_COMPUTER_HISTORY" -eq 1 ]; then
+  COMPUTER_HISTORY_EXISTS="$(path_exists_bool "$COMPUTER_HISTORY_DIR")"
+  COMPUTER_HISTORY_SIZE="$(human_size_for "$COMPUTER_HISTORY_DIR")"
+  COMPUTER_HISTORY_BYTES="$(tree_bytes_for "$COMPUTER_HISTORY_DIR")"
+  COMPUTER_HISTORY_MARKDOWN_COUNT="$(count_markdown_files "$COMPUTER_HISTORY_DIR")"
+fi
 
 SESSIONS_COUNT="$(count_jsonl_files "$SESSIONS_DIR")"
 ARCHIVED_COUNT="$(count_jsonl_files "$ARCHIVED_DIR")"
@@ -972,7 +1038,7 @@ if [ "$FORMAT" = "json" ]; then
       "exists": $(bool_json "$LOG_WAL_EXISTS"),
       "bytes": $LOG_WAL_BYTES,
       "size": $(json_string "$LOG_WAL_SIZE")
-    }
+    }$(computer_history_json_fragment)
   },
   "comparison": $(comparison_json),
   "official_codex_doctor": {
@@ -1044,6 +1110,8 @@ cat <<MARKDOWN
 | logs_2.sqlite-shm | $(if [ "$LOG_SHM_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $LOG_SHM_BYTES | $LOG_SHM_SIZE | - | size only |
 | logs_2.sqlite-wal | $(if [ "$LOG_WAL_EXISTS" = "1" ]; then printf 'yes'; else printf 'no'; fi) | $LOG_WAL_BYTES | $LOG_WAL_SIZE | - | size only |
 MARKDOWN
+
+computer_history_markdown
 
 comparison_markdown
 
