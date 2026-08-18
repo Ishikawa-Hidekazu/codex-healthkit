@@ -32,7 +32,7 @@ body:
     attributes:
       label: codex-healthkit version
       description: Copy only the output of `./bin/codex-healthkit --version`.
-      placeholder: codex-healthkit 0.4.0
+      placeholder: codex-healthkit 0.4.1
     validations:
       required: true
   - type: dropdown

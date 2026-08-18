@@ -14,11 +14,19 @@ By default, it does **not** execute `codex` or read credentials, token files, co
 
 ## 30-Second Quick Start
 
-Default mode needs only Bash and standard Unix tools. It does not execute
-`codex`.
+With `uv`, run the published package without installing it permanently:
 
 ```bash
-git clone --branch v0.4.0 --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git && \
+uvx --from codex-healthkit==0.4.1 codex-healthkit check
+```
+
+Package retrieval uses PyPI. After startup, the default check needs only Bash
+and standard Unix tools and does not execute `codex` or make a network request.
+
+Without Python packaging tools, run the same pinned release from source:
+
+```bash
+git clone --branch v0.4.1 --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git && \
   ./codex-healthkit/bin/codex-healthkit check
 ```
 
@@ -72,7 +80,9 @@ Heavy Codex users often need to answer simple operational questions:
 
 ## Status
 
-Source-only CLI. Latest tagged release: `v0.4.0`.
+Latest release: `v0.4.1`. The existing Bash executable is distributed through
+[PyPI](https://pypi.org/project/codex-healthkit/) without a Python wrapper or
+runtime dependency.
 
 The release remains intentionally narrow and read-only. For a stable daily
 command, install an explicit tag rather than linking to a development checkout.
@@ -136,14 +146,41 @@ Compare with an explicit previous report:
 
 Omit `--json` on the second command when you want a Markdown comparison table.
 
-## Optional Local Install
+## Install From PyPI
+
+Install the exact release with `uv`:
+
+```bash
+uv tool install codex-healthkit==0.4.1
+codex-healthkit --version
+codex-healthkit check
+```
+
+Or use `pipx`:
+
+```bash
+pipx install codex-healthkit==0.4.1
+```
+
+Uninstall only the packaged command with the same tool that installed it:
+
+```bash
+uv tool uninstall codex-healthkit
+# or: pipx uninstall codex-healthkit
+```
+
+The package installer downloads from PyPI. The installed command is the same
+Bash executable from this repository; default checks remain local and
+metadata-only.
+
+## Tag-Pinned Source Install
 
 For a stable daily command, keep each released tag in a versioned directory and
 point a `current` symlink at the selected release. This keeps normal use separate
 from development branches and makes rollback a symlink change.
 
 ```bash
-VERSION=v0.4.0
+VERSION=v0.4.1
 INSTALL_ROOT="$HOME/.local/opt/codex-healthkit"
 
 mkdir -p "$INSTALL_ROOT"

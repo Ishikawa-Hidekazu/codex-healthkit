@@ -4,8 +4,10 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple pre-1.0 changelog style. Dates use UTC.
 
-## Unreleased
+## 0.4.1 - 2026-08-19
 
+- Publish the existing Bash executable as the `codex-healthkit` PyPI package with no runtime dependencies or Python wrapper.
+- Add pinned `uvx`, `uv tool install`, and `pipx install` paths while preserving the tag-pinned source path.
 - Pin the 30-second quick start to the latest published tag and reduce it to one copy-paste command.
 - Add a public-safe first-run report form and link it directly from the English and Japanese quick starts.
 - Add a separate metadata-only session file count for recognized `.jsonl` and `.jsonl.zst` files while preserving `jsonl_count` compatibility.

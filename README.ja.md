@@ -14,10 +14,19 @@ Codexが動いていても、local sessionsやSQLite WALは静かに増えるこ
 
 ## 30秒で試す
 
-default modeに必要なのはBashと標準的なUnix toolsだけです。`codex`は実行しません。
+`uv`がある場合は、packageを常設installせずに実行できます。
 
 ```bash
-git clone --branch v0.4.0 --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git && \
+uvx --from codex-healthkit==0.4.1 codex-healthkit check
+```
+
+package取得時はPyPIへ接続します。起動後のdefault checkに必要なのはBashと標準的な
+Unix toolsだけで、`codex`を実行せず、network requestも行いません。
+
+Python packaging toolsを使わない場合は、同じ公開releaseをsourceから実行できます。
+
+```bash
+git clone --branch v0.4.1 --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git && \
   ./codex-healthkit/bin/codex-healthkit check
 ```
 
@@ -71,10 +80,11 @@ Codexを日常的に使っていると、次のような確認が必要になる
 
 ## ステータス
 
-source-only CLIです。最新のtagged releaseは `v0.4.0` です。
+最新releaseは`v0.4.1`です。既存のBash executableをPython wrapperやruntime dependencyなしで
+[PyPI](https://pypi.org/project/codex-healthkit/)から配布します。
 
 最初の通常releaseも、意図的に狭く、読み取り専用にしています。
-公開済みsource revisionを固定してcloneする場合は`--branch v0.4.0 --depth 1`を指定します。
+公開済みsource revisionを固定してcloneする場合は`--branch v0.4.1 --depth 1`を指定します。
 
 macOSとLinuxで検証済みです。WindowsはこのBash実装では未対応です。
 
@@ -134,12 +144,38 @@ JSON health report:
 
 2つ目のコマンドで `--json` を外すと、Markdownの比較表として読めます。
 
-## ローカルインストール
+## PyPIからinstall
+
+`uv`でversionを固定してinstallします。
+
+```bash
+uv tool install codex-healthkit==0.4.1
+codex-healthkit --version
+codex-healthkit check
+```
+
+`pipx`も利用できます。
+
+```bash
+pipx install codex-healthkit==0.4.1
+```
+
+package commandだけをuninstallする場合:
+
+```bash
+uv tool uninstall codex-healthkit
+# または: pipx uninstall codex-healthkit
+```
+
+package installerはPyPIからdownloadします。installされるcommandはこのrepoと同じBash executableで、
+default checkはlocalかつmetadata-onlyのままです。
+
+## tag固定source install
 
 local `PATH`へ置く場合:
 
 ```bash
-git clone --branch v0.4.0 --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git
+git clone --branch v0.4.1 --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git
 cd codex-healthkit
 mkdir -p ~/.local/bin
 ln -sf "$PWD/bin/codex-healthkit" ~/.local/bin/codex-healthkit

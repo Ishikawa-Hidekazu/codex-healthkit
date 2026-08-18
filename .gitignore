@@ -16,6 +16,7 @@ token.json
 npm-debug.log*
 /node_modules/
 /dist/
+*.egg-info/
 /coverage/
 /reports/
 /tmp/
