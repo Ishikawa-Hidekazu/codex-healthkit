@@ -26,6 +26,11 @@ cd codex-healthkit
 The command prints a reviewable Markdown health report to stdout. It does not
 install a daemon, modify Codex state, or upload the report.
 
+Did the first check work? Share a public-safe
+[first-run report](https://github.com/Ishikawa-Hidekazu/codex-healthkit/issues/new?template=04-first-run-report.yml)
+with only your OS, `codex-healthkit --version`, run method, and result. Do not
+attach the health report or include private paths or contents.
+
 ## 24-Second Terminal Demo
 
 ![A 24-second fixture-only terminal demo showing a default health report, an explicit before-and-after comparison, and the data codex-healthkit does not read.](assets/terminal-demo.gif)

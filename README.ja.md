@@ -25,6 +25,11 @@ cd codex-healthkit
 確認可能なMarkdown health reportをstdoutへ出します。daemonのinstall、Codex stateの変更、
 reportのuploadは行いません。
 
+最初のcheckが動いたか、public-safeな
+[first-run report](https://github.com/Ishikawa-Hidekazu/codex-healthkit/issues/new?template=04-first-run-report.yml)
+で知らせることができます。OS、`codex-healthkit --version`、実行方法、結果だけを記載し、
+health report、private path、内容データは添付しないでください。
+
 ## 24秒のterminal demo
 
 ![通常health report、明示的なbefore/after比較、codex-healthkitが読まないdataを示す24秒のfixture-only terminal demo。](assets/terminal-demo.gif)

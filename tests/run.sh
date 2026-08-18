@@ -44,6 +44,14 @@ if grep -Eq '/Users/|/home/|auth\\.json|token\\.json|BEGIN .*PRIVATE KEY' \
   exit 1
 fi
 
+first_run_template="$ROOT_DIR/.github/ISSUE_TEMPLATE/04-first-run-report.yml"
+grep -q '^name: First-run report$' "$first_run_template"
+grep -q 'including successful runs' "$first_run_template"
+grep -q 'Do not attach a raw health report' "$first_run_template"
+grep -q 'SQLite contents' "$first_run_template"
+grep -q 'session transcripts' "$first_run_template"
+grep -q '04-first-run-report.yml' "$ROOT_DIR/README.md" "$ROOT_DIR/README.ja.md"
+
 CODEX_HOME="$FIXTURE_HOME" CODEX_SQLITE_HOME="$FIXTURE_HOME" \
   "$ROOT_DIR/bin/codex-healthkit" check --json >"$json_report"
 

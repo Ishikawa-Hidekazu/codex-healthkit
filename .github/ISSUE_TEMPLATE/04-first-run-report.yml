@@ -1,0 +1,63 @@
+name: First-run report
+description: Share whether your first metadata-only check worked without posting a raw report.
+title: "[First run]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for trying codex-healthkit.
+
+        This form is for a short first-run result, including successful runs. Do not attach a raw health report or include credentials, tokens, cookies, private paths, SQLite contents, session transcripts, or raw `codex doctor` output.
+  - type: dropdown
+    id: result
+    attributes:
+      label: First-run result
+      options:
+        - The default check completed successfully
+        - The default check completed with unexpected output
+        - I could not complete the default check
+    validations:
+      required: true
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating system
+      description: A public-safe name and version is enough.
+      placeholder: macOS 15 or Ubuntu 24.04
+    validations:
+      required: true
+  - type: input
+    id: healthkit-version
+    attributes:
+      label: codex-healthkit version
+      description: Copy only the output of `./bin/codex-healthkit --version`.
+      placeholder: codex-healthkit 0.4.0
+    validations:
+      required: true
+  - type: dropdown
+    id: run-method
+    attributes:
+      label: How did you run it?
+      options:
+        - Tagged source clone
+        - Main branch source clone
+        - Stable local symlink
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: note
+    attributes:
+      label: Optional note
+      description: Briefly describe what was useful or unclear. Do not paste the health report.
+      placeholder: The default check completed and the safety boundary was clear.
+    validations:
+      required: false
+  - type: checkboxes
+    id: public-safety
+    attributes:
+      label: Public safety check
+      options:
+        - label: I did not include a raw report, credentials, tokens, cookies, private paths, SQLite contents, session transcripts, or raw doctor output.
+          required: true
