@@ -51,6 +51,8 @@ grep -q 'Do not attach a raw health report' "$first_run_template"
 grep -q 'SQLite contents' "$first_run_template"
 grep -q 'session transcripts' "$first_run_template"
 grep -q '04-first-run-report.yml' "$ROOT_DIR/README.md" "$ROOT_DIR/README.ja.md"
+grep -q 'git clone --branch v0.4.0 --depth 1' "$ROOT_DIR/README.md" "$ROOT_DIR/README.ja.md"
+grep -q './codex-healthkit/bin/codex-healthkit check' "$ROOT_DIR/README.md" "$ROOT_DIR/README.ja.md"
 
 CODEX_HOME="$FIXTURE_HOME" CODEX_SQLITE_HOME="$FIXTURE_HOME" \
   "$ROOT_DIR/bin/codex-healthkit" check --json >"$json_report"

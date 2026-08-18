@@ -17,11 +17,11 @@ Codexが動いていても、local sessionsやSQLite WALは静かに増えるこ
 default modeに必要なのはBashと標準的なUnix toolsだけです。`codex`は実行しません。
 
 ```bash
-git clone --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git
-cd codex-healthkit
-./bin/codex-healthkit check
+git clone --branch v0.4.0 --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git && \
+  ./codex-healthkit/bin/codex-healthkit check
 ```
 
+development branchではなく、最新の公開releaseを固定して実行します。
 確認可能なMarkdown health reportをstdoutへ出します。daemonのinstall、Codex stateの変更、
 reportのuploadは行いません。
 
