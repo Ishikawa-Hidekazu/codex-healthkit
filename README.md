@@ -18,11 +18,11 @@ Default mode needs only Bash and standard Unix tools. It does not execute
 `codex`.
 
 ```bash
-git clone --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git
-cd codex-healthkit
-./bin/codex-healthkit check
+git clone --branch v0.4.0 --depth 1 https://github.com/Ishikawa-Hidekazu/codex-healthkit.git && \
+  ./codex-healthkit/bin/codex-healthkit check
 ```
 
+This pins the latest published release instead of running the development branch.
 The command prints a reviewable Markdown health report to stdout. It does not
 install a daemon, modify Codex state, or upload the report.
 
