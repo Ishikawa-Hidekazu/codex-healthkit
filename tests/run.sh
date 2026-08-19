@@ -25,7 +25,7 @@ session_count_report="$(mktemp)"
 FAKE_CURL_LOG="$ROOT_DIR/tests/fixtures/fake-curl.log"
 trap 'rm -f "$markdown_report" "$json_report" "$invalid_doctor_report" "$valid_doctor_report" "$compare_previous_report" "$compare_json_report" "$compare_markdown_report" "$advisory_previous_report" "$advisory_json_report" "$default_summary_report" "$update_json_report" "$update_markdown_report" "$session_count_report" "$FAKE_CODEX_LOG" "$FAKE_CURL_LOG"; rm -rf "$symlink_home" "$session_count_home"' EXIT
 
-test "$("$ROOT_DIR/bin/codex-healthkit" --version)" = "codex-healthkit 0.4.0"
+test "$("$ROOT_DIR/bin/codex-healthkit" --version)" = "codex-healthkit 0.4.1"
 
 CODEX_HOME="$FIXTURE_HOME" CODEX_SQLITE_HOME="$FIXTURE_HOME" \
   "$ROOT_DIR/bin/codex-healthkit" check >"$markdown_report"
@@ -50,9 +50,15 @@ grep -q 'including successful runs' "$first_run_template"
 grep -q 'Do not attach a raw health report' "$first_run_template"
 grep -q 'SQLite contents' "$first_run_template"
 grep -q 'session transcripts' "$first_run_template"
+grep -q 'uvx temporary run' "$first_run_template"
+grep -q 'uv tool install' "$first_run_template"
+grep -q 'pipx install' "$first_run_template"
 grep -q '04-first-run-report.yml' "$ROOT_DIR/README.md" "$ROOT_DIR/README.ja.md"
-grep -q 'git clone --branch v0.4.0 --depth 1' "$ROOT_DIR/README.md" "$ROOT_DIR/README.ja.md"
+grep -q 'git clone --branch v0.4.1 --depth 1' "$ROOT_DIR/README.md" "$ROOT_DIR/README.ja.md"
 grep -q './codex-healthkit/bin/codex-healthkit check' "$ROOT_DIR/README.md" "$ROOT_DIR/README.ja.md"
+grep -q 'uvx --from codex-healthkit==0.4.1 codex-healthkit check' "$ROOT_DIR/README.md" "$ROOT_DIR/README.ja.md"
+grep -q 'uv tool install codex-healthkit==0.4.1' "$ROOT_DIR/README.md" "$ROOT_DIR/README.ja.md"
+"$ROOT_DIR/scripts/check-release-version.sh" v0.4.1 >/dev/null
 
 CODEX_HOME="$FIXTURE_HOME" CODEX_SQLITE_HOME="$FIXTURE_HOME" \
   "$ROOT_DIR/bin/codex-healthkit" check --json >"$json_report"

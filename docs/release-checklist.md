@@ -65,13 +65,14 @@ Each item above needs a separate safety and release review.
 
 ## Release Gate Log
 
-### `v0.4.1` candidate - unreleased
+### `v0.4.1` candidate - approved for release
 
 Scope:
 
 - Include the post-`v0.4.0` compressed session file count without changing the existing `jsonl_count` field.
 - Add report-to-decision guidance without cleanup, deletion, checkpoint, daemon, or telemetry behavior.
-- Keep the release source-only and preserve default JSON compatibility apart from the additive `session_file_count` field already merged to `main`.
+- Publish the reviewed Bash executable through PyPI without a Python wrapper or runtime dependency.
+- Preserve default JSON compatibility apart from the additive `session_file_count` field already merged to `main`.
 
 Gate:
 
@@ -79,8 +80,11 @@ Gate:
 - [ ] Confirm `README.md`, `README.ja.md`, `CHANGELOG.md`, CLI version, tag, and release notes agree on `v0.4.1`.
 - [ ] Run Bash syntax, ShellCheck, tests, actionlint, gitleaks, Linux CI, and macOS CI.
 - [ ] Verify an anonymous tagged clone and isolated tag-pinned install.
+- [ ] Verify isolated sdist/wheel builds, package metadata, wheel contents, `uv tool install`, `uvx`, and `pipx`.
+- [ ] Confirm the Trusted Publisher identity is `Ishikawa-Hidekazu/codex-healthkit`, workflow `publish-pypi.yml`, environment `pypi`.
+- [ ] Verify anonymous PyPI installs and the metadata-only safety fields after publication.
 - [ ] Confirm default mode still reads no credentials, tokens, cookies, SQLite contents, or transcript contents.
-- [ ] Obtain the explicit tag / GitHub Release gate before publishing.
+- [x] Obtain the explicit packaging PR, tag, GitHub Release, and PyPI publication gate.
 
 ### `v0.4.0` - 2026-08-11
 
