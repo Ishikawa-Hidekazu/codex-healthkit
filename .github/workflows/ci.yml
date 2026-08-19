@@ -73,7 +73,13 @@ jobs:
           python -m twine check dist/*
           python - <<'PY'
           import pathlib
+          import re
           import zipfile
+
+          readme = pathlib.Path("README.pypi.md").read_text(encoding="utf-8")
+          links = re.findall(r"\]\(([^)]+)\)", readme)
+          assert links
+          assert all(link.startswith("https://") for link in links), links
 
           wheel = next(pathlib.Path("dist").glob("*.whl"))
           with zipfile.ZipFile(wheel) as archive:

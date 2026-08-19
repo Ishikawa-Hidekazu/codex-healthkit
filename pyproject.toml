@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "codex-healthkit"
 version = "0.4.1"
 description = "Metadata-only local health reports for daily OpenAI Codex CLI operators."
-readme = "README.md"
+readme = "README.pypi.md"
 requires-python = ">=3.9"
 license = "MIT"
 authors = [

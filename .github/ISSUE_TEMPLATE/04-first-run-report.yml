@@ -31,7 +31,7 @@ body:
     id: healthkit-version
     attributes:
       label: codex-healthkit version
-      description: Copy only the output of `./bin/codex-healthkit --version`.
+      description: Copy only the output of `codex-healthkit --version` or `./bin/codex-healthkit --version`.
       placeholder: codex-healthkit 0.4.1
     validations:
       required: true
@@ -40,6 +40,9 @@ body:
     attributes:
       label: How did you run it?
       options:
+        - uvx temporary run
+        - uv tool install
+        - pipx install
         - Tagged source clone
         - Main branch source clone
         - Stable local symlink
