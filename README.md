@@ -59,13 +59,16 @@ Heavy Codex users often need to answer simple operational questions:
 
 `codex-healthkit` focuses on that narrow problem. It is not a usage dashboard, account switcher, cleanup tool, or transcript parser.
 
+Background on why the safety boundary is drawn where it is:
+[codex-healthkit: a local health check CLI for daily Codex use](https://taupe.site/en/entry/codex-healthkit-cli-local-environment-check/)
+
 ## Status
 
-Source-only alpha. Latest tagged release: `v0.1.0-alpha.1`.
+Source-only. Latest tagged release: `v0.4.1`.
 
-The first tagged alpha is intentionally narrow and read-only.
-The `main` branch may contain reviewed improvements added after that tag. For
-the published source revision, clone with `--branch v0.1.0-alpha.1 --depth 1`.
+The project stays intentionally narrow and read-only.
+The `main` branch may contain reviewed improvements added after the latest tag.
+To pin a specific published revision, clone with `--branch v0.4.1 --depth 1`.
 
 Tested on macOS and Linux. Windows is not supported by this Bash implementation.
 
