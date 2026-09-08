@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1708 874" width="1708" height="874" role="img" aria-label="Runtime diagnostics — blast radius">
+<title>Runtime diagnostics — blast radius</title>
+<desc>The opt-in path from operator command to bounded macOS collection, public reduction, report contract, and verification.</desc>
+<style>text{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif}.lanebox{fill:rgba(255,255,255,.55)}.lanelabel{font-size:10px;font-weight:700;letter-spacing:.12em;fill:#59636e}.card{fill:#ffffff;stroke:#d1d9e0;stroke-width:1}.card-added{stroke:#1f883d;stroke-opacity:.55}.card-modified{stroke:#bf8700;stroke-opacity:.5}.ghost{opacity:.55}.ghost .card{stroke:#cf222e;stroke-dasharray:4 3;stroke-opacity:.6}.context{opacity:.82}.ntitle{font-weight:600;fill:#1f2328}.strike{text-decoration:line-through}.nsub{font-size:9.5px;fill:#59636e;font-family:ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace}.chip{fill:#f1f3f5}.glyph{fill:#59636e}.glyph-stroke{stroke:#59636e;stroke-width:1.4;fill:none}.bdg text{font-size:8.5px;font-weight:700;letter-spacing:.06em}.bdg rect{stroke-width:1}.bdg-added rect{fill:#b9f0c4;stroke:rgba(31,136,61,.55)}.bdg-added text{fill:#116329}.bdg-modified rect{fill:#fae17d;stroke:rgba(154,103,0,.55)}.bdg-modified text{fill:#7d4e00}.bdg-removed rect{fill:#ffcecb;stroke:rgba(207,34,46,.5)}.bdg-removed text{fill:#a40e26}.bdg-neutral rect{fill:#f1f3f5;stroke:#d1d9e0}.bdg-neutral text{fill:#59636e}.edge{fill:none;stroke-width:1.5}.edge-added{stroke:#1f883d}.edge-modified{stroke:#bf8700}.edge-removed{stroke:#cf222e;stroke-dasharray:5 4;opacity:.7}.edge-neutral{stroke:#8c959f}.hero{stroke-width:2.25}.faded{opacity:.45}.glow{fill:none;stroke-width:7;opacity:.14}.msg-self{font-size:11px;fill:#1f2328}.lpill{fill:#ffffff;stroke:#d8dee4;stroke-width:1}.ltext{font-size:9.5px;font-weight:600;fill:#59636e}.ltext-added{fill:#116329}.ltext-modified{fill:#7d4e00}.ltext-removed{fill:#a40e26}.cardsh{filter:drop-shadow(0 1px 2px rgba(31,35,40,.14))}.lifeline{stroke:#d1d9e0;stroke-width:1;stroke-dasharray:3 4}.actbar{fill:#b9f0c4;stroke:rgba(31,136,61,.55)}.msg{fill:none;stroke-width:1.5}.msg-return{stroke-dasharray:4 3;opacity:.8}.msg-strong{stroke-width:2.25}</style>
+<defs><pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1" fill="rgba(140,149,159,.5)"/></pattern><marker id="mk-added" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1f883d"/></marker><marker id="mko-added" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2,1 L10,5 L2,9" fill="none" stroke="#1f883d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker><marker id="mk-modified" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#bf8700"/></marker><marker id="mko-modified" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2,1 L10,5 L2,9" fill="none" stroke="#bf8700" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker><marker id="mk-removed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#cf222e"/></marker><marker id="mko-removed" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2,1 L10,5 L2,9" fill="none" stroke="#cf222e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker><marker id="mk-neutral" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8c959f"/></marker><marker id="mko-neutral" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M2,1 L10,5 L2,9" fill="none" stroke="#8c959f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="0" y="0" width="1708" height="874" rx="12" fill="#f4f5f7"/>
+<rect x="0" y="0" width="1708" height="874" rx="12" fill="url(#dots)"/>
+<g><rect class="lanebox" x="16" y="44" width="404" height="814" rx="12"/>
+<text class="lanelabel" x="32" y="68">OPERATOR · EXPLICIT OPT-IN</text>
+<rect class="lanebox" x="440" y="44" width="404" height="814" rx="12"/>
+<text class="lanelabel" x="456" y="68">CODEX-HEALTHKIT · LOCAL BASH CLI</text>
+<rect class="lanebox" x="864" y="44" width="404" height="814" rx="12"/>
+<text class="lanelabel" x="880" y="68">MACOS · BOUNDED SYSTEM METADATA</text>
+<rect class="lanebox" x="1288" y="44" width="404" height="814" rx="12"/>
+<text class="lanelabel" x="1304" y="68">CONTRACT AND VERIFICATION · SCHEMA, REPORTS, CI</text></g>
+<g><path class="glow" stroke="#bf8700" d="M404,123 L413,123 C417.97,123 422,127.03 422,132 L422,220 C422,229.39 429.61,237 439,237 L456,237"/>
+<path class="edge edge-modified hero" d="M404,123 L413,123 C417.97,123 422,127.03 422,132 L422,220 C422,229.39 429.61,237 439,237 L456,237" marker-end="url(#mk-modified)"/>
+<circle r="3" fill="#bf8700"><animateMotion dur="2.1s" repeatCount="indefinite" path="M404,123 L413,123 C417.97,123 422,127.03 422,132 L422,220 C422,229.39 429.61,237 439,237 L456,237"/></circle>
+<circle r="3" fill="#bf8700"><animateMotion dur="2.1s" begin="-1.4s" repeatCount="indefinite" path="M404,123 L413,123 C417.97,123 422,127.03 422,132 L422,220 C422,229.39 429.61,237 439,237 L456,237"/></circle>
+<circle r="3" fill="#bf8700"><animateMotion dur="2.1s" begin="-0.7s" repeatCount="indefinite" path="M404,123 L413,123 C417.97,123 422,127.03 422,132 L422,220 C422,229.39 429.61,237 439,237 L456,237"/></circle>
+<path class="edge edge-neutral context" d="M694,268 L694,320" marker-end="url(#mk-neutral)"/>
+<path class="edge edge-added" d="M586,268 L586,320" marker-end="url(#mk-added)"/>
+<circle r="2.6" fill="#1f883d"><animateMotion dur="1.6s" repeatCount="indefinite" path="M586,268 L586,320"/></circle>
+<path class="edge edge-added" d="M546,382 L546,395 C546,402.18 551.82,408 559,408 L819.5,408 C833.03,408 844,418.97 844,432.5 L844,439 C844,448.94 852.06,457 862,457 L880,457" marker-end="url(#mk-added)"/>
+<circle r="2.6" fill="#1f883d"><animateMotion dur="1.6s" repeatCount="indefinite" path="M546,382 L546,395 C546,402.18 551.82,408 559,408 L819.5,408 C833.03,408 844,418.97 844,432.5 L844,439 C844,448.94 852.06,457 862,457 L880,457"/></circle>
+<path class="edge edge-added" d="M880,473 L867,473 C859.82,473 854,478.82 854,486 L854,558 C854,565.18 848.18,571 841,571 L828,571" marker-end="url(#mk-added)"/>
+<circle r="2.6" fill="#1f883d"><animateMotion dur="1.6s" repeatCount="indefinite" path="M880,473 L867,473 C859.82,473 854,478.82 854,486 L854,558 C854,565.18 848.18,571 841,571 L828,571"/></circle>
+<path class="edge edge-added" d="M456,351 L447,351 C442.03,351 438,355.03 438,360 L438,570 C438,574.97 442.03,579 447,579 L456,579" marker-end="url(#mk-added)"/>
+<circle r="2.6" fill="#1f883d"><animateMotion dur="1.6s" repeatCount="indefinite" path="M456,351 L447,351 C442.03,351 438,355.03 438,360 L438,570 C438,574.97 442.03,579 447,579 L456,579"/></circle>
+<path class="glow" stroke="#1f883d" d="M828,587 L846,587 C855.94,587 864,595.06 864,605 L864,607.5 C864,618.82 873.18,628 884.5,628 L1269.5,628 C1285.24,628 1298,640.76 1298,656.5 L1298,682 C1298,683.66 1299.34,685 1301,685 L1304,685"/>
+<path class="edge edge-added hero" d="M828,587 L846,587 C855.94,587 864,595.06 864,605 L864,607.5 C864,618.82 873.18,628 884.5,628 L1269.5,628 C1285.24,628 1298,640.76 1298,656.5 L1298,682 C1298,683.66 1299.34,685 1301,685 L1304,685" marker-end="url(#mk-added)"/>
+<circle r="3" fill="#1f883d"><animateMotion dur="2.1s" repeatCount="indefinite" path="M828,587 L846,587 C855.94,587 864,595.06 864,605 L864,607.5 C864,618.82 873.18,628 884.5,628 L1269.5,628 C1285.24,628 1298,640.76 1298,656.5 L1298,682 C1298,683.66 1299.34,685 1301,685 L1304,685"/></circle>
+<circle r="3" fill="#1f883d"><animateMotion dur="2.1s" begin="-1.4s" repeatCount="indefinite" path="M828,587 L846,587 C855.94,587 864,595.06 864,605 L864,607.5 C864,618.82 873.18,628 884.5,628 L1269.5,628 C1285.24,628 1298,640.76 1298,656.5 L1298,682 C1298,683.66 1299.34,685 1301,685 L1304,685"/></circle>
+<circle r="3" fill="#1f883d"><animateMotion dur="2.1s" begin="-0.7s" repeatCount="indefinite" path="M828,587 L846,587 C855.94,587 864,595.06 864,605 L864,607.5 C864,618.82 873.18,628 884.5,628 L1269.5,628 C1285.24,628 1298,640.76 1298,656.5 L1298,682 C1298,683.66 1299.34,685 1301,685 L1304,685"/></circle>
+<path class="edge edge-neutral context" d="M828,351 L831,351 C832.66,351 834,352.34 834,354 L834,610 C834,628.78 849.22,644 868,644 L1256.17,644 C1271.91,644 1284.67,656.76 1284.67,672.5 L1284.67,691.33 C1284.67,696.67 1288.99,701 1294.33,701 L1304,701" marker-end="url(#mk-neutral)"/>
+<path class="edge edge-added" d="M1490,724 L1490,776" marker-end="url(#mk-added)"/>
+<path class="edge edge-modified faded" d="M1304,115 L1281,115 C1268.3,115 1258,125.3 1258,138 L1258,280 C1258,298.78 1242.78,314 1224,314 L880.67,314 C876.98,314 874,311.02 874,307.33 C874,303.65 871.02,300.67 867.33,300.67 L563.67,300.67 C558.33,300.67 554,304.99 554,310.33 L554,320" marker-end="url(#mk-modified)"/>
+<path class="edge edge-added faded" d="M1304,131 L1287.67,131 C1278.65,131 1271.33,138.31 1271.33,147.33 L1271.33,790.67 C1271.33,799.69 1278.65,807 1287.67,807 L1304,807" marker-end="url(#mk-added)"/></g>
+<g><g class="cardsh context"><rect class="card" x="32" y="92" width="372" height="62" rx="10"/>
+<rect class="chip" x="46" y="110" width="26" height="26" rx="7"/><g><rect class="glyph-stroke" x="51" y="117" width="16" height="12" rx="2"/>
+<path class="glyph-stroke" d="M51,119 l8,6 8,-6"/></g>
+<text class="ntitle" x="82" y="119" font-size="13">codex-healthkit check</text>
+<text class="nsub" x="82" y="137">default or --with-runtime</text>
+<g class="bdg bdg-neutral"><rect x="353.41" y="84" width="43.59" height="16" rx="8"/><text x="375.21" y="95" text-anchor="middle">opt-in</text></g></g>
+<g class="cardsh"><rect class="card card-modified" x="456" y="206" width="372" height="62" rx="10"/>
+<rect class="chip" x="470" y="224" width="26" height="26" rx="7"/><g><path class="glyph" d="M476,231 L490,237 L476,243 Z"/></g>
+<text class="ntitle" x="506" y="233" font-size="13">Command dispatch</text>
+<text class="nsub" x="506" y="251">argument parsing and orchestration</text>
+<g class="bdg bdg-neutral"><rect x="659.39" y="198" width="88.99" height="16" rx="8"/><text x="703.89" y="209" text-anchor="middle">+ --with-runtime</text></g>
+<g class="bdg bdg-modified"><rect x="754.38" y="198" width="66.62" height="16" rx="8"/><text x="787.69" y="209" text-anchor="middle">CHANGED</text></g></g>
+<g class="cardsh"><rect class="card card-added" x="456" y="320" width="180" height="62" rx="10"/>
+<rect class="chip" x="470" y="338" width="26" height="26" rx="7"/><g><text class="glyph" x="483" y="355.5" text-anchor="middle" style="font-size:14px;font-style:italic;font-family:Georgia,serif">ƒ</text></g>
+<text class="ntitle" x="506" y="347" font-size="11.5">collect_runtime</text>
+<text class="nsub" x="506" y="365">macOS-only collector</text>
+<g class="bdg bdg-neutral"><rect x="531.86" y="312" width="50.59" height="16" rx="8"/><text x="557.16" y="323" text-anchor="middle">macOS</text></g>
+<g class="bdg bdg-added"><rect x="588.45" y="312" width="40.55" height="16" rx="8"/><text x="608.73" y="323" text-anchor="middle">NEW</text></g></g>
+<g class="cardsh context"><rect class="card" x="648" y="320" width="180" height="62" rx="10"/>
+<rect class="chip" x="662" y="338" width="26" height="26" rx="7"/><g><text class="glyph" x="675" y="355.5" text-anchor="middle" style="font-size:11px;font-family:ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, monospace">{ }</text></g>
+<text class="ntitle" x="698" y="347" font-size="11.5">Default checks</text>
+<text class="nsub" x="698" y="365">sessions and SQLite…</text></g>
+<g class="cardsh"><rect class="card card-added" x="456" y="548" width="372" height="62" rx="10"/>
+<rect class="chip" x="470" y="566" width="26" height="26" rx="7"/><g><text class="glyph" x="483" y="583.5" text-anchor="middle" style="font-size:11px;font-family:ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, monospace">{ }</text></g>
+<text class="ntitle" x="506" y="575" font-size="13">Runtime reducer</text>
+<text class="nsub" x="506" y="593">categories, thresholds, candidates</text>
+<g class="bdg bdg-neutral"><rect x="701.25" y="540" width="73.2" height="16" rx="8"/><text x="737.85" y="551" text-anchor="middle">4 categories</text></g>
+<g class="bdg bdg-added"><rect x="780.45" y="540" width="40.55" height="16" rx="8"/><text x="800.73" y="551" text-anchor="middle">NEW</text></g></g>
+<g class="cardsh context"><rect class="card" x="880" y="434" width="372" height="62" rx="10"/>
+<rect class="chip" x="894" y="452" width="26" height="26" rx="7"/><g><rect class="glyph-stroke" x="899" y="459" width="16" height="12" rx="2"/>
+<path class="glyph-stroke" d="M899,461 l8,6 8,-6"/></g>
+<text class="ntitle" x="930" y="461" font-size="13">macOS runtime tools</text>
+<text class="nsub" x="930" y="479">standard macOS commands</text>
+<g class="bdg bdg-neutral"><rect x="1161.26" y="426" width="83.74" height="16" rx="8"/><text x="1203.13" y="437" text-anchor="middle">bounded fields</text></g></g>
+<g class="cardsh"><rect class="card card-modified" x="1304" y="92" width="372" height="62" rx="10"/>
+<rect class="chip" x="1318" y="110" width="26" height="26" rx="7"/><g><path class="glyph-stroke" d="M1325,123 l4,4 l8,-8"/></g>
+<text class="ntitle" x="1354" y="119" font-size="13">Runtime tests and CI</text>
+<text class="nsub" x="1354" y="137">Darwin, Linux, compare, safety</text>
+<g class="bdg bdg-neutral"><rect x="1545.26" y="84" width="51.12" height="16" rx="8"/><text x="1570.82" y="95" text-anchor="middle">fixtures</text></g>
+<g class="bdg bdg-modified"><rect x="1602.38" y="84" width="66.62" height="16" rx="8"/><text x="1635.69" y="95" text-anchor="middle">CHANGED</text></g></g>
+<g class="cardsh"><rect class="card card-modified" x="1304" y="662" width="372" height="62" rx="10"/>
+<rect class="chip" x="1318" y="680" width="26" height="26" rx="7"/><g><text class="glyph" x="1331" y="697.5" text-anchor="middle" style="font-size:11px;font-family:ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, monospace">{ }</text></g>
+<text class="ntitle" x="1354" y="689" font-size="13">Runtime report</text>
+<text class="nsub" x="1354" y="707">JSON and Markdown</text>
+<g class="bdg bdg-neutral"><rect x="1482.68" y="654" width="44.07" height="16" rx="8"/><text x="1504.72" y="665" text-anchor="middle">JSON</text></g>
+<g class="bdg bdg-neutral"><rect x="1532.75" y="654" width="63.63" height="16" rx="8"/><text x="1564.57" y="665" text-anchor="middle">Markdown</text></g>
+<g class="bdg bdg-modified"><rect x="1602.38" y="654" width="66.62" height="16" rx="8"/><text x="1635.69" y="665" text-anchor="middle">CHANGED</text></g></g>
+<g class="cardsh"><rect class="card card-added" x="1304" y="776" width="372" height="62" rx="10"/>
+<rect class="chip" x="1318" y="794" width="26" height="26" rx="7"/><g><path class="glyph-stroke" d="M1324,803 h14"/>
+<path class="glyph-stroke" d="M1324,811 h14"/>
+<circle class="glyph" cx="1329" cy="803" r="2.2"/>
+<circle class="glyph" cx="1334" cy="811" r="2.2"/></g>
+<text class="ntitle" x="1354" y="803" font-size="13">Runtime schema</text>
+<text class="nsub" x="1354" y="821">JSON Schema 2020-12</text>
+<g class="bdg bdg-neutral"><rect x="1487.02" y="768" width="135.43" height="16" rx="8"/><text x="1554.74" y="779" text-anchor="middle">additionalProperties: false</text></g>
+<g class="bdg bdg-added"><rect x="1628.45" y="768" width="40.55" height="16" rx="8"/><text x="1648.73" y="779" text-anchor="middle">NEW</text></g></g></g>
+<g><g><rect class="lpill" x="383.23" y="168.5" width="77.54" height="15" rx="7.5"/><text class="ltext ltext-modified" x="422" y="179.5" text-anchor="middle">--with-runtime</text></g>
+<g><rect class="lpill" x="647.67" y="286.5" width="92.67" height="15" rx="7.5"/><text class="ltext" x="694" y="297.5" text-anchor="middle">always continues</text></g>
+<g><rect class="lpill" x="548.62" y="286.5" width="74.76" height="15" rx="7.5"/><text class="ltext ltext-added" x="586" y="297.5" text-anchor="middle">explicit opt-in</text></g>
+<g><rect class="lpill" x="637.87" y="400.5" width="102.76" height="15" rx="7.5"/><text class="ltext ltext-added" x="689.25" y="411.5" text-anchor="middle">bounded fields only</text></g>
+<g><rect class="lpill" x="792.43" y="514.5" width="123.15" height="15" rx="7.5"/><text class="ltext ltext-added" x="854" y="525.5" text-anchor="middle">memory + process rows</text></g>
+<g><rect class="lpill" x="382.71" y="457.5" width="110.58" height="15" rx="7.5"/><text class="ltext ltext-added" x="438" y="468.5" text-anchor="middle">classify and compare</text></g>
+<g><rect class="lpill" x="1031.22" y="620.5" width="91.56" height="15" rx="7.5"/><text class="ltext ltext-added" x="1077" y="631.5" text-anchor="middle">public categories</text></g>
+<g><rect class="lpill" x="924.22" y="636.5" width="105" height="15" rx="7.5"/><text class="ltext" x="976.72" y="647.5" text-anchor="middle">existing health state</text></g>
+<g><rect class="lpill" x="1434.99" y="742.5" width="110.02" height="15" rx="7.5"/><text class="ltext ltext-added" x="1490" y="753.5" text-anchor="middle">runtime v0.1 contract</text></g>
+<g><rect class="lpill" x="993.96" y="306.5" width="116.74" height="15" rx="7.5"/><text class="ltext ltext-modified" x="1052.33" y="317.5" text-anchor="middle">fixtures and assertions</text></g>
+<g><rect class="lpill" x="1236.75" y="461.5" width="69.17" height="15" rx="7.5"/><text class="ltext ltext-added" x="1271.33" y="472.5" text-anchor="middle">jq validation</text></g></g>
+</svg>
