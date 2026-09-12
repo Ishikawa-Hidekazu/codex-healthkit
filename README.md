@@ -516,6 +516,14 @@ Out of scope until a new safety review:
 - background monitoring
 - npm package distribution
 
+## Built by Ishikawa Hidekazu
+
+codex-healthkit is built and maintained by [Ishikawa Hidekazu](https://ishikawa.co/en/about/) as part of a small collection of reviewable tools for safer AI operations.
+
+- [QuotaTempo](https://github.com/Ishikawa-Hidekazu/quota-tempo) - plan weekly Codex and Claude capacity from a native macOS menu-bar app
+- [public-source-extractor](https://github.com/Ishikawa-Hidekazu/public-source-extractor) - validate public URLs and turn them into reviewable Markdown or JSON
+- [Explore all public projects](https://ishikawa.co/en/projects/)
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
