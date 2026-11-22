@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 This project follows a simple pre-1.0 changelog style. Dates use UTC.
 
+## Unreleased
+
+- Keep the temporary PyPI launcher in save/compare examples instead of assuming
+  a source checkout exists. Clarify installed-command and source-only forms,
+  absent-directory interpretation and shell redirection's overwrite behavior.
+- Test all four no-install documentation paths from an empty working directory
+  with the real checker and a stub package launcher. Codex execution and curl
+  are canary failures; runtime code and package dependencies are unchanged.
+
 ## 0.4.1 - 2026-08-19
 
 - Publish the existing Bash executable as the `codex-healthkit` PyPI package with no runtime dependencies or Python wrapper.

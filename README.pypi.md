@@ -37,6 +37,18 @@ The default check remains local after startup.
 
 ## Modes
 
+After a temporary `uvx` run, keep the launcher prefix. It does not install a
+bare command or create `./bin/codex-healthkit` in the current directory:
+
+```bash
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json > before.json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json --compare before.json
+```
+
+Use a new report filename: shell redirection may overwrite an existing file.
+The installed-command shorthand below applies only after a persistent install.
+
 - `codex-healthkit check`: local metadata-only health report
 - `codex-healthkit check --json`: machine-readable report
 - `codex-healthkit check --compare before.json`: explicit before/after metadata comparison

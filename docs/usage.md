@@ -2,12 +2,19 @@
 
 This guide explains how to run `codex-healthkit` and how to read the report.
 
+The commands below continue the pinned, temporary PyPI quick start without a
+source checkout. `uvx` does not install a bare command or create `./bin` in your
+working directory. After `uv tool install` or `pipx`, replace the launcher
+prefix with `codex-healthkit`. From a source checkout root only, use
+`./bin/codex-healthkit` instead. Default checks remain metadata-only after
+package retrieval; optional modes keep their separate boundaries.
+
 ## Default Check
 
 Run:
 
 ```bash
-./bin/codex-healthkit check
+uvx --from codex-healthkit==0.4.1 codex-healthkit check
 ```
 
 Default mode is the safest mode. It checks local file metadata only and does not execute the external `codex` command.
@@ -19,7 +26,7 @@ Use this first when you want a report to review or paste into an issue.
 Run:
 
 ```bash
-./bin/codex-healthkit check --json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json
 ```
 
 Use JSON when you want to compare reports over time or feed the output into another local script.
@@ -35,7 +42,7 @@ decompress, or parse any session file, and unrelated files are excluded.
 Validate JSON:
 
 ```bash
-./bin/codex-healthkit check --json | jq empty
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json | jq empty
 ```
 
 ## Previous Report Comparison
@@ -43,9 +50,9 @@ Validate JSON:
 Run:
 
 ```bash
-./bin/codex-healthkit check --json > before.json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json > before.json
 # update Codex CLI, wait a day, or run normal work
-./bin/codex-healthkit check --json --compare before.json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json --compare before.json
 ```
 
 `--compare` reads one explicit previous `codex-healthkit check --json` report and compares metadata-only values with the current check.
@@ -53,7 +60,7 @@ Run:
 Use the default Markdown output for a readable delta table:
 
 ```bash
-./bin/codex-healthkit check --compare before.json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --compare before.json
 ```
 
 It compares:
@@ -66,6 +73,8 @@ It compares:
 
 Important:
 
+- use a new filename when saving: shell redirection can overwrite previous evidence
+- absent directories are reported with `exists: false`; `ok` does not recover or locate sessions
 - requires `jq`
 - does not store history automatically
 - does not upload telemetry
@@ -80,7 +89,7 @@ Every loaded comparison includes a validated interval and an active sessions byt
 To evaluate explicit thresholds without changing the normal summary or exit code:
 
 ```bash
-./bin/codex-healthkit check --compare before.json \
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --compare before.json \
   --sessions-total-advisory-bytes 32212254720 \
   --sessions-daily-growth-advisory-bytes 4294967296
 ```
@@ -94,7 +103,7 @@ The JSON shape for the comparison object is documented in [`../schemas/compariso
 Run:
 
 ```bash
-./bin/codex-healthkit check --with-codex-version
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --with-codex-version
 ```
 
 This executes:
@@ -110,7 +119,7 @@ Use it when an issue or debugging conversation needs the installed Codex CLI ver
 Run:
 
 ```bash
-./bin/codex-healthkit check --json --check-latest-codex
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json --check-latest-codex
 ```
 
 This implies `--with-codex-version` and compares the installed version with the official npm `latest` dist-tag for `@openai/codex`. The result includes the resolved `executable_path`, so a different PATH entry is not mistaken for a failed or incomplete update.
@@ -135,7 +144,7 @@ doctor option only when the official Codex CLI diagnostics are needed.
 Run:
 
 ```bash
-./bin/codex-healthkit check --with-codex-doctor
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --with-codex-doctor
 ```
 
 This executes:

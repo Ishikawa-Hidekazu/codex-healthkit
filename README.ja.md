@@ -60,9 +60,9 @@ database、transcriptは含みません。
 
 | mode | 用途 | 境界 |
 | --- | --- | --- |
-| health report | `./bin/codex-healthkit check` | local metadataだけ。`codex`を実行しない |
-| before / after | `./bin/codex-healthkit check --compare before.json` | 明示したhealth reportを1件比較。自動historyなし |
-| optional doctor | `./bin/codex-healthkit check --with-codex-doctor` | official `codex doctor --json`を明示実行。provider到達性checkの可能性あり |
+| health report | `uvx --from codex-healthkit==0.4.1 codex-healthkit check` | local metadataだけ。`codex`を実行しない |
+| before / after | `uvx --from codex-healthkit==0.4.1 codex-healthkit check --compare before.json` | 明示したhealth reportを1件比較。自動historyなし |
+| optional doctor | `uvx --from codex-healthkit==0.4.1 codex-healthkit check --with-codex-doctor` | official `codex doctor --json`を明示実行。provider到達性checkの可能性あり |
 | JSON output | health reportまたは比較へ`--json`を追加 | 同じdataを機械処理しやすい形式で出力 |
 
 最初はdefault checkから始めてください。これが一番狭いモードで、`codex` を実行しません。
@@ -121,28 +121,38 @@ checkpoint、directory cleanup、内容に基づく原因診断も行いませ�
 
 ## よく使うコマンド
 
+以下はinstall不要のquick startからそのまま続けられます。`uvx`は作業directoryへ
+`./bin/codex-healthkit`を作らず、PATHへ通常commandも追加しません。
+`uv tool install`や`pipx`でinstall済みなら、
+`uvx --from codex-healthkit==0.4.1 codex-healthkit`を`codex-healthkit`へ置き換えます。
+`./bin/codex-healthkit`はsource checkoutのroot専用です。
+
 JSON health report:
 
 ```bash
-./bin/codex-healthkit check --json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json
 ```
 
 レポート保存:
 
 ```bash
-./bin/codex-healthkit check > codex-health-report.md
-./bin/codex-healthkit check --json > codex-health-report.json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check > codex-health-report.md
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json > codex-health-report.json
 ```
 
 明示的な前回レポートと比較:
 
 ```bash
-./bin/codex-healthkit check --json > before.json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json > before.json
 # Codex CLIを更新する、1日待つ、通常作業をする
-./bin/codex-healthkit check --json --compare before.json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json --compare before.json
 ```
 
 2つ目のコマンドで `--json` を外すと、Markdownの比較表として読めます。
+新しい保存file名を使ってください。shellの`>`は既存reportを上書きします。
+自動historyは作らず、保存JSONの再読は新しいcheckではありません。
+新しいCodex homeでは`state.*.exists`も確認します。directoryがない状態の
+`summary: ok`を、過去sessionが見つかった・復旧できたという意味にしません。
 
 ## PyPIからinstall
 
@@ -412,7 +422,7 @@ tests/run.sh
 最初のtroubleshooting:
 
 ```bash
-./bin/codex-healthkit --help
+uvx --from codex-healthkit==0.4.1 codex-healthkit --help
 bash --version
 command -v find du stat awk wc tr
 ```
