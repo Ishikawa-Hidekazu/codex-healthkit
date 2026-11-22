@@ -6,6 +6,9 @@ This project follows a simple pre-1.0 changelog style. Dates use UTC.
 
 ## Unreleased
 
+- Describe PyPI and tag-pinned source distribution in the social-preview badge
+  and roadmap instead of the obsolete source-only label. Preserve the visual
+  layout, synthetic fixtures, and runtime behavior.
 - Keep the temporary PyPI launcher in save/compare examples instead of assuming
   a source checkout exists. Clarify installed-command and source-only forms,
   absent-directory interpretation and shell redirection's overwrite behavior.
