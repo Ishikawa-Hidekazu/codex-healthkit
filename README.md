@@ -60,9 +60,9 @@ account, path, report, database, or transcript.
 
 | Mode | Use it for | Boundary |
 | --- | --- | --- |
-| Health report | `./bin/codex-healthkit check` | Local metadata only; does not execute `codex` |
-| Before / after | `./bin/codex-healthkit check --compare before.json` | Compares one explicit health report; no automatic history |
-| Optional doctor | `./bin/codex-healthkit check --with-codex-doctor` | Explicitly runs official `codex doctor --json`; may perform provider reachability checks |
+| Health report | `uvx --from codex-healthkit==0.4.1 codex-healthkit check` | Local metadata only; does not execute `codex` |
+| Before / after | `uvx --from codex-healthkit==0.4.1 codex-healthkit check --compare before.json` | Compares one explicit health report; no automatic history |
+| Optional doctor | `uvx --from codex-healthkit==0.4.1 codex-healthkit check --with-codex-doctor` | Explicitly runs official `codex doctor --json`; may perform provider reachability checks |
 | JSON output | Add `--json` to a health report or comparison | Same data in a machine-readable format |
 
 Start with the default check. It is the narrowest mode and does not execute `codex`.
@@ -123,28 +123,38 @@ not checkpoint SQLite, clean directories, or diagnose content-level causes.
 
 ## Common Commands
 
+These commands continue the no-permanent-install quick start. `uvx` does not
+create a `./bin/codex-healthkit` in your current directory or install a command
+into PATH. If you installed with `uv tool install` or `pipx`, replace
+`uvx --from codex-healthkit==0.4.1 codex-healthkit` with `codex-healthkit`.
+Only source-checkout examples use `./bin/codex-healthkit` from the repo root.
+
 JSON health report:
 
 ```bash
-./bin/codex-healthkit check --json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json
 ```
 
 Save a report:
 
 ```bash
-./bin/codex-healthkit check > codex-health-report.md
-./bin/codex-healthkit check --json > codex-health-report.json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check > codex-health-report.md
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json > codex-health-report.json
 ```
 
 Compare with an explicit previous report:
 
 ```bash
-./bin/codex-healthkit check --json > before.json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json > before.json
 # update Codex CLI, wait a day, or run normal work
-./bin/codex-healthkit check --json --compare before.json
+uvx --from codex-healthkit==0.4.1 codex-healthkit check --json --compare before.json
 ```
 
 Omit `--json` on the second command when you want a Markdown comparison table.
+Use a new report filename: shell `>` redirection can overwrite a saved report.
+The check does not create automatic history, and a JSON re-read is not a new
+check. On a new Codex home, inspect `state.*.exists`; `summary: ok` with missing
+directories is not evidence that previous sessions were found or recovered.
 
 ## Install From PyPI
 
@@ -452,7 +462,7 @@ If something looks wrong:
 Quick troubleshooting:
 
 ```bash
-./bin/codex-healthkit --help
+uvx --from codex-healthkit==0.4.1 codex-healthkit --help
 bash --version
 command -v find du stat awk wc tr
 ```

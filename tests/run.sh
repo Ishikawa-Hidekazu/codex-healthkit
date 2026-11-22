@@ -336,7 +336,11 @@ if command -v jq >/dev/null 2>&1; then
 fi
 
 if command -v shellcheck >/dev/null 2>&1; then
-  shellcheck "$ROOT_DIR/bin/codex-healthkit" "$ROOT_DIR/tests/run.sh" "$FAKE_BIN/codex"
+  shellcheck "$ROOT_DIR/bin/codex-healthkit" "$ROOT_DIR/tests/run.sh" "$ROOT_DIR/tests/no-install-docs.sh" "$FAKE_BIN/codex"
+fi
+
+if command -v jq >/dev/null 2>&1; then
+  bash "$ROOT_DIR/tests/no-install-docs.sh"
 fi
 
 printf 'tests ok\n'
