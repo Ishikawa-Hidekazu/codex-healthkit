@@ -32,6 +32,13 @@ CODEX_HOME="$FIXTURE_HOME" CODEX_SQLITE_HOME="$FIXTURE_HOME" \
 
 grep -q "auth files read: \`no\`" "$markdown_report"
 grep -q "SQLite contents read: \`no\`" "$markdown_report"
+social_preview="$ROOT_DIR/assets/source/social-preview.svg"
+grep -Fq 'width="1280" height="640"' "$social_preview"
+grep -Fq '>PYPI + SOURCE</text>' "$social_preview"
+if grep -Eqi 'source-only|alpha|/Users/|/home/|BEGIN .*PRIVATE KEY' "$social_preview"; then
+  exit 1
+fi
+grep -Fq 'published CLI from PyPI or tag-pinned source' "$ROOT_DIR/README.md"
 demo_sources=(
   "$ROOT_DIR/assets/source/terminal-demo.svg"
   "$ROOT_DIR/assets/source/terminal-demo-compare.svg"

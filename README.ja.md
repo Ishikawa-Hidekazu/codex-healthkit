@@ -472,7 +472,7 @@ public issueには、credentials、tokens、cookies、private paths、raw sessio
 
 近い範囲:
 
-- source-only releaseの日次利用を継続
+- PyPIまたはtag固定sourceから公開CLIの日次利用を継続
 - fixture-based testsの追加
 - report exampleの改善
 - 実用改善がまとまった段階で次releaseを判断

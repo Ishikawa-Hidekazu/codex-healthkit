@@ -22,6 +22,11 @@ Generated files:
 - `assets/health-report-mobile.png` — mobile README visual, 750 x 1200
 - `assets/social-preview.png` — GitHub Social Preview candidate, 1280 x 640
 
+The social-preview badge describes the two distribution paths, PyPI and
+tag-pinned source, without embedding a version that can become stale. This
+repository asset is a candidate, not confirmation of the GitHub repository's
+configured Social Preview image.
+
 Terminal demo sources:
 
 - `assets/source/terminal-demo.svg`
